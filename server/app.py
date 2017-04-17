@@ -13,6 +13,16 @@ def login_post():
 
     response = JSONResponse("login")
 
+    if "username" not in request.form:
+        response.success = False
+        response.message = "no username provided for login"
+        return response.to_json(), 200
+
+    if "password" not in request.form:
+        response.success = False
+        response.message = "no password provided for login"
+        return response.to_json(), 200
+
     username = request.form["username"]
     password = request.form["password"]
 
