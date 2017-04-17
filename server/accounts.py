@@ -1,6 +1,6 @@
 """
 This module handles all account state operations, such as:
-    - registration
+    - account creation
     - login
     - logout
 """
@@ -8,5 +8,8 @@ This module handles all account state operations, such as:
 def login(username, password):
     pass
 
-def register():
+def logout(username):
+    pass
+
+def create_account():
     pass

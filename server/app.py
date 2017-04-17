@@ -1,26 +1,50 @@
-from flask import Flask, request
+from flask import Flask, request, session
+from response import JSONResponse
 
 import accounts
 
+# App settings
 app = Flask(__name__)
+app.secret_key = "secret_key_here_in_deployment"
 
 @app.route("/login", methods=["POST"])
 def login_post():
+    """ Handles login requests. """
+
+    response = JSONResponse("login")
 
     username = request.form["username"]
     password = request.form["password"]
 
-    # TODO: do some session nonsense...
+    if username in session:
+        # Client is already logged in as someone
+        if session["username"] == username:
+            # Already logged in as person who they are trying to login as
+            response.success = True
+            return response.to_json(), 200
+        else:
+            response.success = False
+            response.message = "you are already logged in as someone else"
+            return response.to_json(), 200
 
-    #return accounts.login(username, password)
-    return "Login not yet implemented", 501
+    #accounts.login(username, password)
+    response.success = False
+    response.message = "login not yet implemented"
 
-@app.route("/register", methods=["POST"])
-def register_post():
+    return response.to_json(), 501
+
+@app.route("/create-account", methods=["POST"])
+def create_account_post():
+    """ Creates a new account. """
+
+    response = JSONResponse("create-account")
 
     # TODO: implement account creation
 
-    return "Account creation not yet implemented", 501
+    response.success = False
+    response.message = "account creation not yet implemented"
+
+    return response.to_json(), 501
 
 if __name__ == '__main__':
     app.run()
