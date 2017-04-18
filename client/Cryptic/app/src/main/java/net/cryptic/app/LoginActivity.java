@@ -298,7 +298,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
 
-            // TODO: register the new account here.
+            // TODO: register the new account here
             return true;
         }
 
