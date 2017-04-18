@@ -28,11 +28,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Set;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -207,19 +210,19 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     /**
-     * Represents an asynchronous login/registration task used to authenticate
+     * Represents an asynchronous login task used to authenticate
      * the user.
      */
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
         private final LoginActivity loginActivity;
-        private final String mUser;
+        private final String mUsername;
         private final String mPassword;
 
-        UserLoginTask(LoginActivity login, String user, String password) {
-            loginActivity = login;
-            mUser = user;
-            mPassword = password;
+        UserLoginTask(LoginActivity loginActivity, String user, String password) {
+            this.loginActivity = loginActivity;
+            this.mUsername = user;
+            this.mPassword = password;
         }
 
         @Override
@@ -227,33 +230,22 @@ public class LoginActivity extends AppCompatActivity {
             // TODO: attempt authentication against a network service.
             URL url = null;
             HttpURLConnection conn = null;
-            String response = "Error! No response!";
+            String response;
+
+            HashMap<String, String> form = new HashMap<>();
+
+            form.put("username", mUsername);
+            form.put("password", mPassword);
+
             try{
-                url = new URL("http://162.209.100.212:5000/q");
+                url = new URL("http://localhost:5000/login");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
-                //conn.setRequestProperty("q", input.getMessage());
-                //conn.setRequestProperty("l", input.getLocation());
-                Long timestamp = System.currentTimeMillis()/1000;
-                conn.setRequestProperty("t", timestamp.toString());
                 conn.setDoOutput(true);
-                conn.setDoOutput(true);
+
                 OutputStream outputPost = new BufferedOutputStream(conn.getOutputStream());
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputPost, "UTF-8"));
-                //Build POST request string. Format: q=<query>&l=<location>&t=<timestamp>
-                StringBuilder builder = new StringBuilder();
-                builder.append(URLEncoder.encode("q", "UTF-8"));
-                builder.append("=");
-                //builder.append(URLEncoder.encode(input.getMessage(), "UTF-8"));
-                builder.append("&");
-                builder.append(URLEncoder.encode("l", "UTF-8"));
-                builder.append("=");
-                //builder.append(URLEncoder.encode(input.getLocation(), "UTF-8"));
-                builder.append("&");
-                builder.append(URLEncoder.encode("t", "UTF-8"));
-                builder.append("=");
-                builder.append(URLEncoder.encode(timestamp.toString(), "UTF-8"));
-                writer.write(builder.toString());
+                writer.write(urlEncode(form));
                 writer.flush();
                 writer.close();
                 outputPost.close();
@@ -266,8 +258,7 @@ public class LoginActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-
-            //responce here!
+            // TODO: responseCode nonsense
             try {
                 if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
                     response = "";
@@ -279,20 +270,12 @@ public class LoginActivity extends AppCompatActivity {
 
                 }
             } catch (Exception e) {
-            }
-
-            //return response;
-
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
+                e.printStackTrace();
             }
 
             for (String credential : DUMMY_CREDENTIALS) {
                 String[] pieces = credential.split(":");
-                if (pieces[0].equals(mUser)) {
+                if (pieces[0].equals(mUsername)) {
                     // Account exists, return true if the password matches.
                     return pieces[1].equals(mPassword);
                 }
@@ -321,5 +304,26 @@ public class LoginActivity extends AppCompatActivity {
             mAuthTask = null;
             showProgress(false);
         }
+
+        public String urlEncode(HashMap<String, String> form) {
+            StringBuilder encoded = new StringBuilder();
+
+            // URL encode the form key-value pairs. A trailing ampersand will be added which
+            // shouldn't be a problem.
+            try {
+                for (String key : form.keySet()) {
+                    encoded.append(URLEncoder.encode(key, "UTF-8"));
+                    encoded.append("=");
+                    encoded.append(URLEncoder.encode(form.get(key), "UTF-8"));
+                    encoded.append("&");
+                }
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+
+            return encoded.toString();
+
+        }
+
     }
 }
