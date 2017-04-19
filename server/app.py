@@ -37,11 +37,9 @@ def login_post():
             response.message = "you are already logged in as someone else"
             return response.to_json(), 200
 
-    #accounts.login(username, password)
-    response.success = False
-    response.message = "login not yet implemented"
+    response.success, response.message = accounts.login(session, username, password)
 
-    return response.to_json(), 501
+    return response.to_json(), 200
 
 @app.route("/create-account", methods=["POST"])
 def create_account_post():
@@ -51,10 +49,9 @@ def create_account_post():
 
     # TODO: implement account creation
 
-    response.success = False
-    response.message = "account creation not yet implemented"
+    response.success, response.message = create_account(session, username, password)
 
-    return response.to_json(), 501
+    return response.to_json(), 200
 
 if __name__ == '__main__':
     app.run()
