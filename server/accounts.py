@@ -21,7 +21,8 @@ def login(session, username, password):
     """
     # Find user in DB
     try:
-        cursor.execute("SELECT username, password, is_admin FROM users WHERE username=%s", (username,))
+        cursor.execute("SELECT username, password, is_admin FROM users WHERE username=%s",
+                       (username,))
     except mariadb.Error as error:
         return (False, "Database error: {}".format(error))
 
@@ -39,7 +40,7 @@ def login(session, username, password):
     if bcrypt.checkpw(password, hashed_password):
         # Login was successful
         session["username"] = fetched_username
-        session["admin"] = is_admin
+        session["is_admin"] = is_admin
         return (True, "")
     else:
         # Invalid password
