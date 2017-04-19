@@ -10,7 +10,7 @@ import bcrypt
 mariadb_conn = mariadb.connect(host='localhost',
                                database='cryptic',
                                user='cryptic_user',)
-                               #password='deployment_password')
+                               password='deployment_password')
 cursor = mariadb_conn.cursor()
 
 def login(session, username, password):
@@ -32,8 +32,9 @@ def login(session, username, password):
 
     fetched_username, hashed_password, is_admin = rows[0]
 
-    # Encode given password for use in bcrypt
+    # Encode passwords for use in bcrypt
     password = password.encode("UTF-8")
+    hashed_password = hashed_password.encode("UTF-8")
 
     if bcrypt.checkpw(password, hashed_password):
         # Login was successful
