@@ -211,7 +211,10 @@ public class LoginActivity extends AppCompatActivity {
         private final LoginActivity loginActivity;
         private final String mUsername;
         private final String mPassword;
-        private JSONObject jsonResponse;
+
+        private String action = "";
+        private boolean success = false;
+        private String message = "";
 
         UserLoginTask(LoginActivity loginActivity, String user, String password) {
             this.loginActivity = loginActivity;
@@ -225,9 +228,6 @@ public class LoginActivity extends AppCompatActivity {
             URL url = null;
             HttpURLConnection conn = null;
             String response;
-            String action;
-            boolean success = false;
-            String message = "";
 
             HashMap<String, String> form = new HashMap<>();
 
@@ -264,47 +264,44 @@ public class LoginActivity extends AppCompatActivity {
                     while ((line = br.readLine()) != null) {
                         response += line;
                     }
-                    jsonResponse = new JSONObject(response);
+                    JSONObject jsonResponse = new JSONObject(response);
                     action = jsonResponse.getString("action");
                     success = jsonResponse.getBoolean("success");
                     if (!success)
                         message = jsonResponse.getString("message");
+                } else {
+                    return false;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                jsonResponse = null;
             }
 
             // TODO: register the new account here
             return success;
         }
 
+        /**
+         * Handles UI changes after login request is made and completed.
+         * @param success true if login was successful, false otherwise
+         */
         @Override
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
             showProgress(false);
 
-            if (jsonResponse.equals(null)) {
-                mPasswordView.setError(getString(R.string.error_other));
-                mPasswordView.requestFocus();
-            }
-
-            try {
-                if (jsonResponse.getString("action").equals("login")) {
-                    if (success) {
-                        Intent intent = new Intent(loginActivity, ScrollingActivity.class);
-                        startActivity(intent);
-                    }
-                }
-                else {
-                    mPasswordView.setError(getString(R.string.error_incorrect_password));
+            if (success) {
+                Intent intent = new Intent(loginActivity, ScrollingActivity.class);
+                startActivity(intent);
+            } else {
+                if (!message.isEmpty()) {
+                    mPasswordView.setError(message);
+                    mPasswordView.requestFocus();
+                } else {
+                    mPasswordView.setError("Something went wrong. Please try again");
                     mPasswordView.requestFocus();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-                mPasswordView.setError(getString(R.string.error_other));
-                mPasswordView.requestFocus();
             }
+
         }
 
         @Override
