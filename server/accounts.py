@@ -8,9 +8,9 @@ import MySQLdb as mariadb
 import bcrypt
 
 mariadb_conn = mariadb.connect(host='localhost',
-                               user='cryptic_user',
-                               password='deployment_password',
-                               database='cryptic')
+                               database='cryptic',
+                               user='cryptic_user',)
+                               #password='deployment_password')
 cursor = mariadb_conn.cursor()
 
 def login(session, username, password):
@@ -21,14 +21,16 @@ def login(session, username, password):
     """
     # Find user in DB
     try:
-        cursor.execute("SELECT username, password, admin FROM users WHERE username=%s", (username))
+        cursor.execute("SELECT username, password, is_admin FROM users WHERE username=%s", (username,))
     except mariadb.Error as error:
         return (False, "Database error: {}".format(error))
 
-    if len(cursor) != 1:
+    rows = cursor.fetchall()
+
+    if len(rows) != 1:
         return (False, "Invalid username or password")
 
-    fetched_username, hashed_password, is_admin = cursor[0]
+    fetched_username, hashed_password, is_admin = rows[0]
 
     # Encode given password for use in bcrypt
     password = password.encode("UTF-8")
