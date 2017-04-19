@@ -8,8 +8,8 @@ import mysql.connector as mariadb
 import bcrypt
 
 mariadb_conn = mariadb.connect(user='cryptic_user',
-                       password='deployment_password',
-                       database='cryptic')
+                               password='deployment_password',
+                               database='cryptic')
 cursor = mariadb_conn.cursor()
 
 def login(session, username, password):
@@ -17,8 +17,7 @@ def login(session, username, password):
 
     Returns: a tuple (success, message) detailing the result of the login
              attempt
-     """
-
+    """
     # Find user in DB
     try:
         cursor.execute("SELECT username, password, admin FROM users WHERE username=%s", (username))
@@ -42,6 +41,8 @@ def login(session, username, password):
         # Invalid password
         return (False, "Invalid username or password")
 
+    print("hello")
+
     return (False, "Login not yet implemented")
 
 def logout(session, username):
@@ -55,5 +56,5 @@ def create_account(session, username, password):
 
     Returns: a tuple (success, message) detailing the result of the login
              attempt
-     """
-     return (False, "Account creation not yet implemented")
+    """
+    return (False, "Account creation not yet implemented")
