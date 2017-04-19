@@ -21,6 +21,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -47,16 +50,6 @@ import static android.R.id.input;
 public class LoginActivity extends AppCompatActivity {
 
     /**
-     * Id to identity READ_CONTACTS permission request.
-
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
-    /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
     private UserLoginTask mAuthTask = null;
@@ -73,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         // Set up the login form.
         mUserView = (AutoCompleteTextView) findViewById(R.id.user);
-        populateAutoComplete();
+        //populateAutoComplete();
 
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -218,6 +211,7 @@ public class LoginActivity extends AppCompatActivity {
         private final LoginActivity loginActivity;
         private final String mUsername;
         private final String mPassword;
+        private JSONObject jsonResponse;
 
         UserLoginTask(LoginActivity loginActivity, String user, String password) {
             this.loginActivity = loginActivity;
@@ -231,6 +225,9 @@ public class LoginActivity extends AppCompatActivity {
             URL url = null;
             HttpURLConnection conn = null;
             String response;
+            String action;
+            boolean success = false;
+            String message = "";
 
             HashMap<String, String> form = new HashMap<>();
 
@@ -267,22 +264,19 @@ public class LoginActivity extends AppCompatActivity {
                     while ((line = br.readLine()) != null) {
                         response += line;
                     }
-
+                    jsonResponse = new JSONObject(response);
+                    action = jsonResponse.getString("action");
+                    success = jsonResponse.getBoolean("success");
+                    if (!success)
+                        message = jsonResponse.getString("message");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-            }
-
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mUsername)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
+                jsonResponse = null;
             }
 
             // TODO: register the new account here
-            return true;
+            return success;
         }
 
         @Override
@@ -290,11 +284,25 @@ public class LoginActivity extends AppCompatActivity {
             mAuthTask = null;
             showProgress(false);
 
-            if (success) {
-                Intent intent = new Intent(loginActivity, ScrollingActivity.class);
-                startActivity(intent);
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
+            if (jsonResponse.equals(null)) {
+                mPasswordView.setError(getString(R.string.error_other));
+                mPasswordView.requestFocus();
+            }
+
+            try {
+                if (jsonResponse.getString("action").equals("login")) {
+                    if (success) {
+                        Intent intent = new Intent(loginActivity, ScrollingActivity.class);
+                        startActivity(intent);
+                    }
+                }
+                else {
+                    mPasswordView.setError(getString(R.string.error_incorrect_password));
+                    mPasswordView.requestFocus();
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+                mPasswordView.setError(getString(R.string.error_other));
                 mPasswordView.requestFocus();
             }
         }
