@@ -13,19 +13,31 @@ def login_post():
 
     response = JSONResponse("login")
 
+    # Form validation
     if "username" not in request.form:
         response.success = False
-        response.message = "no username provided for login"
+        response.message = "No username provided for login"
         return response.to_json(), 200
 
     if "password" not in request.form:
         response.success = False
-        response.message = "no password provided for login"
+        response.message = "No password provided for login"
         return response.to_json(), 200
 
     username = request.form["username"]
     password = request.form["password"]
 
+    if len(username) > 255:
+        response.success = False
+        response.message = "Username field may not exceed 255 characters"
+        return response.to_json(), 200
+
+    if len(password) > 255:
+        response.success = False
+        response.message = "Password field may not exceed 255 characters"
+        return response.to_json(), 200
+
+    # Check for active sessions
     if username in session:
         # Client is already logged in as someone
         if session["username"] == username:
@@ -34,9 +46,10 @@ def login_post():
             return response.to_json(), 200
         else:
             response.success = False
-            response.message = "you are already logged in as someone else"
+            response.message = "You are already logged in as someone else"
             return response.to_json(), 200
 
+    # Perform login
     response.success, response.message = accounts.login(session, username, password)
 
     return response.to_json(), 200
