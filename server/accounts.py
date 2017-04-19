@@ -9,7 +9,7 @@ import bcrypt
 
 mariadb_conn = mariadb.connect(host='localhost',
                                database='cryptic',
-                               user='cryptic_user',)
+                               user='cryptic_user',
                                password='deployment_password')
 cursor = mariadb_conn.cursor()
 

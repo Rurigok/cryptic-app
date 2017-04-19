@@ -38,7 +38,7 @@ def login_post():
         return response.to_json(), 200
 
     # Check for active sessions
-    if username in session:
+    if "username" in session:
         # Client is already logged in as someone
         if session["username"] == username:
             # Already logged in as person who they are trying to login as
