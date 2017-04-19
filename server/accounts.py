@@ -45,8 +45,6 @@ def login(session, username, password):
         # Invalid password
         return (False, "Invalid username or password")
 
-    print("hello")
-
     return (False, "Login not yet implemented")
 
 def logout(session, username):
