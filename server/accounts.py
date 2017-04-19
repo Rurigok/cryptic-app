@@ -4,10 +4,11 @@ This module handles all account state operations, such as:
     - login
     - logout
 """
-import mysql.connector as mariadb
+import MySQLdb as mariadb
 import bcrypt
 
-mariadb_conn = mariadb.connect(user='cryptic_user',
+mariadb_conn = mariadb.connect(host='localhost',
+                               user='cryptic_user',
                                password='deployment_password',
                                database='cryptic')
 cursor = mariadb_conn.cursor()
