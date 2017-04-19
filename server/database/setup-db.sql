@@ -3,8 +3,8 @@ DROP DATABASE IF EXISTS cryptic;
 CREATE DATABASE cryptic;
 
 -- Create standard user
-DROP USER IF EXISTS 'cryptic_user'@'%';
-DROP USER IF EXISTS 'cryptic_user'@'localhost';
+DROP USER 'cryptic_user'@'%';
+DROP USER 'cryptic_user'@'localhost';
 CREATE USER 'cryptic_user'@'%' IDENTIFIED BY 'deployment_password';
 CREATE USER 'cryptic_user'@'localhost' IDENTIFIED BY 'deployment_password';
 
