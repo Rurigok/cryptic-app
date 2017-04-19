@@ -67,4 +67,4 @@ def create_account_post():
     return response.to_json(), 200
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=5678)

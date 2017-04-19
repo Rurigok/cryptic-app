@@ -7,7 +7,7 @@ This module handles all account state operations, such as:
 import mysql.connector as mariadb
 import bcrypt
 
-mariadb_conn = mariadb.connect(user='Flask',
+mariadb_conn = mariadb.connect(user='cryptic_user',
                        password='deployment_password',
                        database='cryptic')
 cursor = mariadb_conn.cursor()
@@ -43,7 +43,6 @@ def login(session, username, password):
         return (False, "Invalid username or password")
 
     return (False, "Login not yet implemented")
-
 
 def logout(session, username):
     pass
