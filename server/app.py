@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from flask import Flask, request, session
 from response import JSONResponse
 
@@ -12,6 +13,8 @@ def login_post():
     """ Handles login requests. """
 
     response = JSONResponse("login")
+
+    print("Before:", session)
 
     # Form validation
     if "username" not in request.form:
@@ -39,6 +42,7 @@ def login_post():
 
     # Check for active sessions
     if "username" in session:
+        print("username in session found: ", session["username"])
         # Client is already logged in as someone
         if session["username"] == username:
             # Already logged in as person who they are trying to login as
@@ -52,6 +56,8 @@ def login_post():
     # Perform login
     response.success, response.message = accounts.login(session, username, password)
 
+    print("After:", session)
+
     return response.to_json(), 200
 
 @app.route("/create-account", methods=["POST"])
@@ -62,7 +68,7 @@ def create_account_post():
 
     # TODO: implement account creation
 
-    response.success, response.message = create_account(session, username, password)
+    session, response.success, response.message = create_account(session, username, password)
 
     return response.to_json(), 200
 

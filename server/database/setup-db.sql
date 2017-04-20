@@ -12,7 +12,8 @@ CREATE USER 'cryptic_user'@'localhost' IDENTIFIED BY 'deployment_password';
 CREATE TABLE IF NOT EXISTS cryptic.users (
   user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(255),
-  password VARCHAR(255)
+  password VARCHAR(255),
+  is_admin TINYINT DEFAULT 0
 );
 
 -- Grant user privileges

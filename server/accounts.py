@@ -8,9 +8,9 @@ import MySQLdb as mariadb
 import bcrypt
 
 mariadb_conn = mariadb.connect(host='localhost',
-                               database='cryptic',
+                               db='cryptic',
                                user='cryptic_user',
-                               password='deployment_password')
+                               passwd='deployment_password')
 cursor = mariadb_conn.cursor()
 
 def login(session, username, password):
@@ -39,8 +39,10 @@ def login(session, username, password):
 
     if bcrypt.checkpw(password, hashed_password):
         # Login was successful
+        #print("Successful login.")
         session["username"] = fetched_username
         session["is_admin"] = is_admin
+        #print("Updated session:", session)
         return (True, "")
     else:
         # Invalid password
@@ -60,4 +62,4 @@ def create_account(session, username, password):
     Returns: a tuple (success, message) detailing the result of the login
              attempt
     """
-    return (False, "Account creation not yet implemented")
+    return (session, False, "Account creation not yet implemented")
