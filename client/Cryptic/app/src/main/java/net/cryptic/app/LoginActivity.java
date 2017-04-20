@@ -55,7 +55,7 @@ public class LoginActivity extends AppCompatActivity {
     private UserLoginTask mAuthTask = null;
 
     // UI references.
-    private AutoCompleteTextView mUserView;
+    private EditText mUserView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
@@ -65,7 +65,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         // Set up the login form.
-        mUserView = (AutoCompleteTextView) findViewById(R.id.user);
+        mUserView = (EditText) findViewById(R.id.user);
         //populateAutoComplete();
 
         mPasswordView = (EditText) findViewById(R.id.password);
@@ -90,9 +90,6 @@ public class LoginActivity extends AppCompatActivity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
-    }
-
-    private void populateAutoComplete() {
     }
 
     /**
