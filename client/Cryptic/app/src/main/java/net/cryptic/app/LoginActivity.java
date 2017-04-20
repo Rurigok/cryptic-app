@@ -235,7 +235,7 @@ public class LoginActivity extends AppCompatActivity {
             form.put("password", mPassword);
 
             try{
-                url = new URL("http://localhost:5000/login");
+                url = new URL("http://andrew.sanetra.me/cryptic/login");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setDoOutput(true);
