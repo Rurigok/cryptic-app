@@ -1,0 +1,15 @@
+[Unit]
+Description=Cryptic application server
+After=network.target
+
+[Service]
+User=andrew
+Type=simple
+WorkingDirectory=/home/andrew/projects/cryptic-app/server
+ExecStart=/usr/bin/python3 /home/andrew/projects/cryptic-app/server/app.py
+Restart=on-failure
+StartLimitInterval=600
+StartLimitBurst=3
+
+[Install]
+WantedBy=multi-user.target
