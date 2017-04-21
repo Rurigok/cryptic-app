@@ -10,13 +10,25 @@ CREATE USER 'cryptic_user'@'localhost' IDENTIFIED BY 'deployment_password';
 
 -- Setup tables
 CREATE TABLE IF NOT EXISTS cryptic.users (
-  user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(255),
-  password VARCHAR(255),
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  personal_key VARCHAR(2048),
+  public_key VARCHAR(2048),
   is_admin TINYINT DEFAULT 0
-);
+) ENGINE = InnoDB;
 
--- Grant user privileges
+CREATE TABLE IF NOT EXISTS cryptic.directory (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  CONSTRAINT fk_user_id
+    FOREIGN KEY (user_id) REFERENCES users (id)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT,
+  device_ip VARCHAR(255)
+) ENGINE = InnoDB;
+
+-- Grant database user privileges
 GRANT SELECT, INSERT, UPDATE, DELETE ON cryptic.users TO 'cryptic_user'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON cryptic.users TO 'cryptic_user'@'localhost';
 

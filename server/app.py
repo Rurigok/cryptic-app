@@ -66,9 +66,23 @@ def create_account_post():
 
     response = JSONResponse("create-account")
 
+    # Form validation
+    if "username" not in request.form:
+        response.success = False
+        response.message = "No username provided for login"
+        return response.to_json(), 200
+
+    username = request.form["username"]
+
+    if len(username) > 255:
+        response.success = False
+        response.message = "Username field may not exceed 255 characters"
+        return response.to_json(), 200
+
+
     # TODO: implement account creation
 
-    session, response.success, response.message = create_account(session, username, password)
+    response.success, response.message = accounts.create_account(session, username)
 
     return response.to_json(), 200
 

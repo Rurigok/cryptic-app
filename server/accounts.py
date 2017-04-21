@@ -4,14 +4,22 @@ This module handles all account state operations, such as:
     - login
     - logout
 """
-import MySQLdb as mariadb
 import bcrypt
+import MySQLdb as mariadb
+import random
 
+# Database connection
 mariadb_conn = mariadb.connect(host='localhost',
                                db='cryptic',
                                user='cryptic_user',
                                passwd='deployment_password')
+# Database cursor
 cursor = mariadb_conn.cursor()
+
+# Random password generation alphabet
+ALPHABET = string.punctuation +
+           string.ascii_letters +
+           string.digits
 
 def login(session, username, password):
     """ Attempts to login the given user with the given password.
@@ -62,4 +70,29 @@ def create_account(session, username, password):
     Returns: a tuple (success, message) detailing the result of the login
              attempt
     """
+    try:
+        cursor.execute("SELECT username FROM users WHERE username=%s",
+                       (username,))
+    except mariadb.Error as error:
+        return (False, "Database error: {}".format(error))
+
+    rows = cursor.fetchall()
+
+    if len(rows) > 0:
+        return (False, "Username is already taken")
+
     return (session, False, "Account creation not yet implemented")
+
+def generate_password(password):
+    """ Generates a random password constrained to strength requirements
+
+    The password shall be:
+        - 16-24 characters in length
+        - a combination of lowercase, uppercase, numbers, and symbols
+
+    Returns: the randomly generated password
+    """
+    # Uses SystemRandom() to generate cryptographically secure numbers
+    length = random.SystemRandom().randint(16, 24)
+    chars = [random.SystemRandom().choice(ALPHABET) for _ in range(length)]
+    return ''.join(chars)
