@@ -17,9 +17,7 @@ mariadb_conn = mariadb.connect(host='localhost',
 cursor = mariadb_conn.cursor()
 
 # Random password generation alphabet
-ALPHABET = string.punctuation +
-           string.ascii_letters +
-           string.digits
+ALPHABET = string.punctuation + string.ascii_letters + string.digits
 
 def login(session, username, password):
     """ Attempts to login the given user with the given password.
