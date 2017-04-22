@@ -12,7 +12,7 @@ app.secret_key = "secret_key_here_in_deployment"
 def login_post():
     """ Handles login requests. """
 
-    response = JSONResponse("login")
+    response = JSONResponse()
 
     print("Before:", session)
 
@@ -54,9 +54,7 @@ def login_post():
             return response.to_json(), 200
 
     # Perform login
-    response.success, response.message = accounts.login(session, username, password)
-
-    print("After:", session)
+    response = accounts.login(session, username, password)
 
     return response.to_json(), 200
 
@@ -64,12 +62,12 @@ def login_post():
 def create_account_post():
     """ Creates a new account. """
 
-    response = JSONResponse("create-account")
+    response = JSONResponse()
 
     # Form validation
     if "username" not in request.form:
         response.success = False
-        response.message = "No username provided for login"
+        response.message = "No username provided for account creation"
         return response.to_json(), 200
 
     username = request.form["username"]
@@ -79,10 +77,9 @@ def create_account_post():
         response.message = "Username field may not exceed 255 characters"
         return response.to_json(), 200
 
-
     # TODO: implement account creation
 
-    response.success, response.message = accounts.create_account(session, username)
+    response = accounts.create_account(username)
 
     return response.to_json(), 200
 
