@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, request, session
+from flask import Flask, redirect, render_template, request, session
 from response import JSONResponse
 
 import accounts
@@ -8,13 +8,22 @@ import accounts
 app = Flask(__name__)
 app.secret_key = "secret_key_here_in_deployment"
 
+@app.route("/admin/login")
+def admin_login():
+    return render_template("login.html")
+
+@app.route("/admin/console")
+def admin_console():
+    return render_template("console.html")
+
 @app.route("/login", methods=["POST"])
 def login_post():
     """ Handles login requests. """
 
     response = JSONResponse()
 
-    print("Before:", session)
+    if "login_error" in session:
+        del session["login_error"]
 
     # Form validation
     if "username" not in request.form:
@@ -55,6 +64,17 @@ def login_post():
 
     # Perform login
     response = accounts.login(session, username, password)
+
+    # Determine source of api request
+    # If source is admin web panel, return admin web console.
+    # Otherwise, return standard JSON response
+    if "medium" in request.form:
+        if request.form["medium"] == "admin_web":
+            if response.success:
+                return redirect("/admin/console")
+            else:
+                session["login_error"] = response.message
+                return redirect("/admin/login")
 
     return response.to_json(), 200
 

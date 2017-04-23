@@ -17,21 +17,21 @@
             </div>
             <div class="row">
                 <div class="col-sm-6 offset-sm-2">
-                    <form>
+                    <form action="/login" method="POST">
                         <div class="form-group">
                             <label for="username">Username</label>
-                            <input type="text" class="form-control" id="username" aria-describedby="usernameHelp" placeholder="Enter username">
+                            <input type="text" class="form-control" name="username" id="username" aria-describedby="usernameHelp" placeholder="Enter username">
                         </div>
                         <div class="form-group">
                             <label for="password">Password</label>
-                            <input type="password" class="form-control" id="password" placeholder="Password">
+                            <input type="password" class="form-control" name="password" id="password" placeholder="Password">
                         </div>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                <input type="checkbox" class="form-check-input">
-                                Remember me
-                            </label>
+                        {% if "login_error" in session %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ session["login_error"] }}
                         </div>
+                        {% endif %}
+                        <input type="hidden" name="medium" value="admin_web">
                         <button type="submit" class="btn btn-primary">Sign In</button>
                     </form>
                 </div>

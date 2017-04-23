@@ -87,10 +87,13 @@ def create_account(username):
     gen_password = gen_password.encode("UTF-8")
     hashed_password = bcrypt.hashpw(gen_password, bcrypt.gensalt())
 
+    # Personal key generation for message storage
+    personal_key = generate_personal_key()
+
     # Insert new account into database
     try:
-        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)",
-                       (username, hashed_password))
+        cursor.execute("INSERT INTO users (username, password, personal_key) VALUES (%s, %s)",
+                       (username, hashed_password, personal_key))
     except mariadb.Error as error:
         return JSONResponse(False, "Database error: {}".format(error))
 
@@ -117,3 +120,7 @@ def generate_password():
     length = random.SystemRandom().randint(16, 24)
     chars = [random.SystemRandom().choice(ALPHABET) for _ in range(length)]
     return ''.join(chars)
+
+def generate_personal_key():
+    """ Generates a random symmetric encryption key. """
+    return None
