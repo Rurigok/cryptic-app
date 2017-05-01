@@ -6,9 +6,11 @@ This module handles all account state operations, such as:
 """
 import bcrypt
 import MySQLdb as mariadb
+import os
 import random
 import string
 
+from base64 import b64encode
 from functools import wraps
 
 from response import JSONResponse
@@ -145,4 +147,8 @@ def generate_password():
 
 def generate_personal_key():
     """ Generates a random symmetric encryption key. """
-    return None
+    
+    key = os.urandom(32)
+    skey = b64encode(key).decode('utf-8')
+    
+    return skey
