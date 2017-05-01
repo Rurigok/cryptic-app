@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 
@@ -12,16 +13,15 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
@@ -33,16 +33,11 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.Set;
 
 import javax.net.ssl.HttpsURLConnection;
-
-import static android.R.id.input;
 
 /**
  * A login screen that offers login via user/password.
@@ -60,9 +55,20 @@ public class LoginActivity extends AppCompatActivity {
     private View mProgressView;
     private View mLoginFormView;
 
+    private String PREFS_NAME = "CRYPTIC_DATA";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences settings = getApplication().getSharedPreferences(PREFS_NAME, 0);
+
+        // Attempt to login with cookies instead of user input credentials
+        if (settings.getString("cookie", null) != null) {
+            mAuthTask = new UserLoginTask(this, "cookie", "cookie");
+            mAuthTask.execute((Void) null);
+        }
+
         setContentView(R.layout.activity_login);
         // Set up the login form.
         mUserView = (EditText) findViewById(R.id.user);
@@ -100,7 +106,6 @@ public class LoginActivity extends AppCompatActivity {
                                            @NonNull int[] grantResults) {
     }
 
-
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid user, missing fields, etc.), the
@@ -134,10 +139,6 @@ public class LoginActivity extends AppCompatActivity {
             mUserView.setError(getString(R.string.error_field_required));
             focusView = mUserView;
             cancel = true;
-        } else if (!isUserValid(user)) {
-            mUserView.setError(getString(R.string.error_invalid_user));
-            focusView = mUserView;
-            cancel = true;
         }
 
         if (cancel) {
@@ -151,11 +152,6 @@ public class LoginActivity extends AppCompatActivity {
             mAuthTask = new UserLoginTask(this, user, password);
             mAuthTask.execute((Void) null);
         }
-    }
-
-    private boolean isUserValid(String user) {
-        //TODO: Replace this with your own logic
-        return true;
     }
 
     private boolean isPasswordValid(String password) {
@@ -228,6 +224,15 @@ public class LoginActivity extends AppCompatActivity {
 
             HashMap<String, String> form = new HashMap<>();
 
+            SharedPreferences settings = getApplication().getSharedPreferences(PREFS_NAME, 0);
+
+            String cookie = settings.getString("cookie", null);
+
+            if (cookie != null) {
+                form.put("cookie", settings.getString("cookie", null));
+                Log.i("OUTPUT", "Cookie sent: " + cookie);
+            }
+
             form.put("username", mUsername);
             form.put("password", mPassword);
 
@@ -246,11 +251,7 @@ public class LoginActivity extends AppCompatActivity {
                 writer.close();
                 outputPost.close();
                 conn.connect();
-            } catch (MalformedURLException e){
-                e.printStackTrace();
-            } catch (SocketTimeoutException e){
-                e.printStackTrace();
-            } catch (IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 
@@ -267,10 +268,18 @@ public class LoginActivity extends AppCompatActivity {
                     //Removed action response from server
                     //action = jsonResponse.getString("action");
                     success = jsonResponse.getBoolean("success");
-                    Storage.setCookies(conn.getHeaderFields());
-                    if (!success)
+
+                    SharedPreferences.Editor editor = settings.edit();
+                    cookie = Storage.setCookies(conn.getHeaderFields());
+                    editor.putString("cookie", cookie);
+
+                    editor.apply();
+                    Log.i("OUTPUT", "Cookie stored: " + cookie);
+
+                    if (!success && !(mUsername.equals("cookie") && mPassword.equals("cookie")))
                         message = jsonResponse.getString("message");
-                } else {
+                }
+                else {
                     return false;
                 }
             } catch (Exception e) {
@@ -293,11 +302,13 @@ public class LoginActivity extends AppCompatActivity {
             if (success) {
                 Intent intent = new Intent(loginActivity, ScrollingActivity.class);
                 startActivity(intent);
-            } else {
+            }
+            else {
                 if (!message.isEmpty()) {
                     mPasswordView.setError(message);
                     mPasswordView.requestFocus();
-                } else {
+                }
+                else if (!(mUsername.equals("cookie") && mPassword.equals("cookie"))) {
                     mPasswordView.setError("Something went wrong. Please try again");
                     mPasswordView.requestFocus();
                 }

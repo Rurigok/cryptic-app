@@ -38,7 +38,12 @@ def login_post():
 
     username = request.form["username"]
     password = request.form["password"]
-
+	
+	if "cookie" in request.form
+		cookie = request.form["cookie"]
+	
+	# TODO: check if cookie is valid
+	
     if len(username) > 255:
         response.success = False
         response.message = "Username field may not exceed 255 characters"
