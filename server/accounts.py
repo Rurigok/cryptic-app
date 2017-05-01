@@ -10,6 +10,7 @@ import random
 import string
 
 from functools import wraps
+
 from response import JSONResponse
 
 # Random password generation alphabet
@@ -25,6 +26,7 @@ def uses_db(func):
     @wraps(func)
     def func_wrapper(*args):
         # Connect to database
+        global db_conn
         db_conn = mariadb.connect(host='localhost',
                                        db='cryptic',
                                        user='cryptic_user',
@@ -118,7 +120,7 @@ def create_account(username):
         return JSONResponse(False, "Database error: {}".format(error))
 
     # Commit transaction
-    mariadb_conn.commit()
+    db_conn.commit()
 
     # Successful insert. Prepare response for client
     response = JSONResponse(True)
