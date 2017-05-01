@@ -9,19 +9,37 @@ import MySQLdb as mariadb
 import random
 import string
 
+from functools import wraps
 from response import JSONResponse
-
-# Database connection
-mariadb_conn = mariadb.connect(host='localhost',
-                               db='cryptic',
-                               user='cryptic_user',
-                               passwd='deployment_password')
-# Database cursor
-cursor = mariadb_conn.cursor()
 
 # Random password generation alphabet
 ALPHABET = string.punctuation + string.ascii_letters + string.digits
 
+def uses_db(func):
+    """ Used to decorate any function that requires database access.
+
+    This decorator opens a database connection and creates a cursor for the
+    decorated function, and closes the connection when the decorated function
+    is done.
+    """
+    @wraps(func)
+    def func_wrapper(*args):
+        # Connect to database
+        db_conn = mariadb.connect(host='localhost',
+                                       db='cryptic',
+                                       user='cryptic_user',
+                                       passwd='deployment_password')
+        # Database cursor
+        global cursor
+        cursor = db_conn.cursor()
+
+        ret_val = func(*args)
+        # Close connection
+        db_conn.close()
+        return ret_val
+    return func_wrapper
+
+@uses_db
 def login(session, username, password):
     """ Attempts to login the given user with the given password.
 
@@ -57,9 +75,11 @@ def login(session, username, password):
 
     return JSONResponse(False, "Login not yet implemented")
 
+@uses_db
 def logout(username):
     pass
 
+@uses_db
 def create_account(username):
     """ Attempts to create the given user account.
 
