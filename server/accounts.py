@@ -114,7 +114,7 @@ def create_account(username):
 
     # Insert new account into database
     try:
-        cursor.execute("INSERT INTO users (username, password, personal_key) VALUES (%s, %s)",
+        cursor.execute("INSERT INTO users (username, password, personal_key) VALUES (%s, %s, %s)",
                        (username, hashed_password, personal_key))
     except mariadb.Error as error:
         return JSONResponse(False, "Database error: {}".format(error))
@@ -125,9 +125,12 @@ def create_account(username):
     # Successful insert. Prepare response for client
     response = JSONResponse(True)
     response.password = gen_password
-    # TODO: modify JSONResponse to actually send this key ^^
 
     return response
+
+@uses_db
+def search_for_user(search_str):
+    pass
 
 def generate_password():
     """ Generates a random password constrained to strength requirements

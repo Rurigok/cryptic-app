@@ -11,7 +11,36 @@
     <body>
         <div class="container">
             <div class="row">
-                <h1>Cryptic Admin Console</h1>
+                <div class="col-sm-12">
+                    <h1>Cryptic Admin Console</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-5">
+                    <h2>Create New User</h2>
+                    <form action="/create-account" method="POST">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" class="form-control" name="username" id="username" placeholder="Enter username">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" class="form-control" name="password" id="password" placeholder="A password will be randomly generated" disabled>
+                        </div>
+                        {% if "login_error" in session %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ session["login_error"] }}
+                        </div>
+                        {% endif %}
+                        <input type="hidden" name="medium" value="admin_web">
+                        <button type="submit" class="btn btn-primary">Create New Account</button>
+                    </form>
+                </div>
+                <div class="col-sm-7">
+                    <h2>Edit User</h2>
+                    <label for="search-user">Search by username</label>
+                    <input type="text" class="form-control" name="search-user" id="search-user" placeholder="Enter username">
+                </div>
             </div>
         </div>
 
