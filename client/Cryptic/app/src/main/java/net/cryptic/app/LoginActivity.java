@@ -262,8 +262,10 @@ public class LoginActivity extends AppCompatActivity {
                         response += line;
                     }
                     JSONObject jsonResponse = new JSONObject(response);
-                    action = jsonResponse.getString("action");
+                    //Removed action response from server
+                    //action = jsonResponse.getString("action");
                     success = jsonResponse.getBoolean("success");
+                    Storage.setCookies(conn.getHeaderFields());
                     if (!success)
                         message = jsonResponse.getString("message");
                 } else {
