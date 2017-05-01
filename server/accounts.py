@@ -81,6 +81,7 @@ def login(session, username, password):
 
 @uses_db
 def logout(username):
+	# TODO: invalidate user's session cookie
     pass
 
 @uses_db

@@ -231,6 +231,8 @@ public class LoginActivity extends AppCompatActivity {
             form.put("username", mUsername);
             form.put("password", mPassword);
 
+            // TODO: https functionality
+
             try{
                 url = new URL("http://andrew.sanetra.me/cryptic/login");
                 conn = (HttpURLConnection) url.openConnection();

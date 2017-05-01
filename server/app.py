@@ -103,5 +103,77 @@ def create_account_post():
 
     return response.to_json(), 200
 
+@app.route("/send-message", methods=["POST"])
+def message_route():
+    """ Mediate peer-to-peer connections """
+    
+    response = JSONResponse()
+    
+    # Form validation
+    if "username" not in request.form:
+        response.success = False
+        response.message = "No username provided for routing"
+        return response.to_json(), 200
+
+    if "target" not in request.form:
+        response.success = False
+        response.message = "No target provided for routing"
+        return response.to_json(), 200
+
+    username = request.form["username"]
+    target = request.form["password"]
+    
+    if "target" in session
+        print("target user online: ", session["target"]);
+        
+        # Find target in DB
+        try:
+            cursor.except("SELECT public_key FROM users WHERE username is=%s",
+                            (target,))
+        except mariadb.Error as error
+            return JSONResponse(False, "Database error: ()".format(error))
+        
+        rows = cursor.fetchall()
+        
+        if len(rows) != 1:
+            return JSONResponse(False, "Invalid Public Key")
+        
+        fetched_target_key = rows[0]
+        
+        # TODO: send target Public Key to username, wait for successful response
+        
+        # find user in DB
+        try:
+            cursor.except("SELECT id, public_key FROM users WHERE username is=%s",
+                            (username,))
+        except mariadb.Error as error
+            return JSONResponse(False, "Database error: ()".format(error))
+        
+        rows = cursor.fetchall()
+        
+        if len(rows) != 1:
+            return JSONResponse(False, "Invalid Public Key")
+        
+        uid, fetched_user_key = rows[0]
+        
+        try:
+            cursor.except("SELECT device_ip FROM directory WHERE id is=%s",
+                            (uid,))
+        except mariadb.Error as error
+            return JSONResponse(False, "Database error: ()".format(error))
+        
+        rows = cursor.fetchall()
+        
+        if len(rows) != 1:
+            return JSONResponse(False, "Invalid IP")
+        
+        fetched_user_ip = rows[0]
+        
+        # TODO: send user IP and Public Key to target, wait for successful response
+    
+    # TODO: handle target offline, place message notification in database
+    
+    return response.to_json(), 200
+
 if __name__ == '__main__':
     app.run(port=5678)
