@@ -16,6 +16,10 @@ from response import JSONResponse
 # Random password generation alphabet
 ALPHABET = string.punctuation + string.ascii_letters + string.digits
 
+# Privilege levels
+STANDARD_USER = 0
+ADMIN = 10
+
 def uses_db(func):
     """ Used to decorate any function that requires database access.
 

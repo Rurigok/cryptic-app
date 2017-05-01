@@ -38,4 +38,4 @@ INSERT INTO cryptic.users (username, password)
   VALUES ('TestUser', '$2b$12$7nwQBIK.HVaGTnbV5ahdouqp34Tt2660W4/7sqg5qbEgwxdvHncFi');
 -- TestAdmin : testpassword
 INSERT INTO cryptic.users (username, password, is_admin)
-  VALUES ('TestAdmin', '$2b$12$7nwQBIK.HVaGTnbV5ahdouqp34Tt2660W4/7sqg5qbEgwxdvHncFi', 1);
+  VALUES ('TestAdmin', '$2b$12$7nwQBIK.HVaGTnbV5ahdouqp34Tt2660W4/7sqg5qbEgwxdvHncFi', 10);

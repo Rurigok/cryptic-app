@@ -1,6 +1,6 @@
 import json
 
-url = "http://localhost:5678"
+url = "http://localhost/cryptic"
 
 def dump_response(response):
     print("HTTP {}: {}".format(response.status_code, response.text))

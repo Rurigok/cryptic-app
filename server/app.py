@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, redirect, render_template, request, session
+from flask import Blueprint, Flask, redirect, render_template, request, session
 from response import JSONResponse
 
 import accounts
@@ -8,81 +8,112 @@ import accounts
 app = Flask(__name__)
 app.secret_key = "secret_key_here_in_deployment"
 
-@app.route("/admin/login")
+bp = Blueprint('cryptic', __name__, template_folder='templates')
+
+@bp.route("/admin/login")
 def admin_login():
     return render_template("login.html")
 
-@app.route("/admin/console")
+@bp.route("/admin/console")
 def admin_console():
+
+    # Check login status and privileges
+    if "username" not in session:
+        session["login_error"] = "You must be logged in"
+        return redirect("/cryptic/admin/login")
+
+    if "is_admin" in session:
+        if session["is_admin"] < accounts.ADMIN:
+            return redirect("/cryptic/admin/login")
+    else:
+        return redirect("/cryptic/admin/login")
+
     return render_template("console.html")
 
-@app.route("/login", methods=["POST"])
+@bp.route("/admin/search-user", methods=["GET"])
+def search_user_get():
+    pass
+
+@bp.route("/login", methods=["POST"])
 def login_post():
     """ Handles login requests. """
-
-    response = JSONResponse()
 
     if "login_error" in session:
         del session["login_error"]
 
-    # Form validation
-    if "username" not in request.form:
-        response.success = False
-        response.message = "No username provided for login"
-        return response.to_json(), 200
+    response = JSONResponse()
 
-    if "password" not in request.form:
-        response.success = False
-        response.message = "No password provided for login"
-        return response.to_json(), 200
+    if "medium" in request.form and request.form["medium"] == "admin_web":
+        # request is from web
+        return "Not yet implemented", 501
 
-    username = request.form["username"]
-    password = request.form["password"]
+    else:
+        # assume request is from app
 
-    if len(username) > 255:
-        response.success = False
-        response.message = "Username field may not exceed 255 characters"
-        return response.to_json(), 200
-
-    if len(password) > 255:
-        response.success = False
-        response.message = "Password field may not exceed 255 characters"
-        return response.to_json(), 200
-
-    # Check for active sessions
-    if "username" in session:
-        print("username in session found: ", session["username"])
-        # Client is already logged in as someone
-        if session["username"] == username:
-            # Already logged in as person who they are trying to login as
-            response.success = True
-            return response.to_json(), 200
-        else:
+        # Form validation
+        if "username" not in request.form:
             response.success = False
-            response.message = "You are already logged in as someone else"
+            response.message = "No username provided for login"
             return response.to_json(), 200
 
-    # Perform login
-    response = accounts.login(session, username, password)
+        if "password" not in request.form:
+            response.success = False
+            response.message = "No password provided for login"
+            return response.to_json(), 200
 
-    # Determine source of api request
-    # If source is admin web panel, return admin web console.
-    # Otherwise, return standard JSON response
-    if "medium" in request.form:
-        if request.form["medium"] == "admin_web":
-            if response.success:
-                return redirect("/admin/console")
+        username = request.form["username"]
+        password = request.form["password"]
+
+        if len(username) > 255:
+            response.success = False
+            response.message = "Username field may not exceed 255 characters"
+            return response.to_json(), 200
+
+        if len(password) > 255:
+            response.success = False
+            response.message = "Password field may not exceed 255 characters"
+            return response.to_json(), 200
+
+        # Check for active sessions
+        if "username" in session:
+            print("username in session found: ", session["username"])
+            # Client is already logged in as someone
+            if session["username"] == username:
+                # Already logged in as person who they are trying to login as
+                response.success = True
+                return response.to_json(), 200
             else:
-                session["login_error"] = response.message
-                return redirect("/admin/login")
+                response.success = False
+                response.message = "You are already logged in as someone else"
+                return response.to_json(), 200
 
-    return response.to_json(), 200
+        # Perform login
+        response = accounts.login(session, username, password)
 
-@app.route("/create-account", methods=["POST"])
+        return response.to_json(), 200
+
+
+@bp.route("/create-account", methods=["POST"])
 def create_account_post():
     """ Creates a new account. """
 
     response = JSONResponse()
+
+    # Check login status and privileges
+    if "username" not in session:
+        response.success = False
+        response.message = "You must be logged in"
+        return response.to_json(), 200
+
+    if "is_admin" in session:
+        if session["is_admin"] < accounts.ADMIN:
+            response.success = False
+            response.message = "Insufficient privileges for account creation"
+            return response.to_json(), 200
+    else:
+        response.success = False
+        response.message = "Insufficient privileges for account creation"
+        return response.to_json(), 200
 
     # Form validation
     if "username" not in request.form:
@@ -97,11 +128,10 @@ def create_account_post():
         response.message = "Username field may not exceed 255 characters"
         return response.to_json(), 200
 
-    # TODO: implement account creation
-
     response = accounts.create_account(username)
 
     return response.to_json(), 200
 
 if __name__ == '__main__':
+    app.register_blueprint(bp, url_prefix="/cryptic")
     app.run(port=5678)
