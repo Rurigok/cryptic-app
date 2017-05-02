@@ -66,8 +66,15 @@ def login_post():
         username = request.form["username"]
         password = request.form["password"]
 
-        if "device_ip" in request.form:
-            device_ip = request.form["device_ip"]
+        device_ip = request.form["device_ip"] if "device_ip" in request.form else ""
+
+        if "public_key" in request.form:
+            public_key = request.form["public_key"]
+
+            if public_key == "PLACEHOLDER_KEY_IGNORE":
+                public_key = None
+        else:
+            public_key = None
 
         if len(username) > 255:
             response.success = False
@@ -92,7 +99,7 @@ def login_post():
             return response.to_json(), 200
 
         # Perform login
-        response = accounts.login(session, username, password, device_ip)
+        response = accounts.login(session, username, password, device_ip, public_key)
 
         return response.to_json(), 200
 

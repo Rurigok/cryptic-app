@@ -35,8 +35,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON cryptic.users TO 'cryptic_user'@'localho
 
 -- Add testing/development data
 -- TestUser : testpassword
-INSERT INTO cryptic.users (username, password)
-  VALUES ('TestUser', '$2b$12$7nwQBIK.HVaGTnbV5ahdouqp34Tt2660W4/7sqg5qbEgwxdvHncFi');
+INSERT INTO cryptic.users (username, password, personal_key)
+  VALUES ('TestUser', '$2b$12$7nwQBIK.HVaGTnbV5ahdouqp34Tt2660W4/7sqg5qbEgwxdvHncFi', 'x3Fx7BEBcSN/jLCFv6FSb+bO990rWNM6bjLGqW/g48s=');
 -- TestAdmin : testpassword
-INSERT INTO cryptic.users (username, password, is_admin)
-  VALUES ('TestAdmin', '$2b$12$7nwQBIK.HVaGTnbV5ahdouqp34Tt2660W4/7sqg5qbEgwxdvHncFi', 10);
+INSERT INTO cryptic.users (username, password, is_admin, personal_key)
+  VALUES ('TestAdmin', '$2b$12$7nwQBIK.HVaGTnbV5ahdouqp34Tt2660W4/7sqg5qbEgwxdvHncFi', 10, 'XBYLApJfz3fT/ZNr8u7LFdTJD0NCwIePBU3CSCRRhlo=');

@@ -48,17 +48,15 @@ def uses_db(func):
     return func_wrapper
 
 @uses_db
-def login(session, username, password, device_ip):
+def login(session, username, password, device_ip, public_key):
     """ Attempts to login the given user with the given password.
 
     Returns: a JSONResponse object detailing the result of the login request
     """
 
-    # TODO: save device ip
-
     # Find user in DB
     try:
-        cursor.execute("SELECT username, password, is_admin FROM users WHERE username=%s",
+        cursor.execute("SELECT username, password, is_admin, personal_key FROM users WHERE username=%s",
                        (username,))
     except mariadb.Error as error:
         return JSONResponse(False, "Database error: {}".format(error))
@@ -68,7 +66,7 @@ def login(session, username, password, device_ip):
     if len(rows) != 1:
         return JSONResponse(False, "Invalid username or password")
 
-    fetched_username, hashed_password, is_admin = rows[0]
+    fetched_username, hashed_password, is_admin, personal_key = rows[0]
 
     # Encode passwords for use in bcrypt
     password = password.encode("UTF-8")
@@ -78,12 +76,38 @@ def login(session, username, password, device_ip):
         # Login was successful
         session["username"] = fetched_username
         session["is_admin"] = is_admin
-        return JSONResponse(True)
     else:
         # Invalid password
         return JSONResponse(False, "Invalid username or password")
 
-    return JSONResponse(False, "Login not yet implemented")
+    # If we are here, login was succesful
+
+    # save device ip if given
+    if device_ip:
+        try:
+            cursor.execute("UPDATE directory INNER JOIN users ON users.id = directory.user_id SET device_ip=%s WHERE username=%s",
+                            (device_ip, username))
+        except mariadb.Error as error:
+            return JSONResponse(False, "Database error: {}".format(error))
+
+        db_conn.commit()
+
+    # save public key if given
+    if public_key:
+        try:
+            cursor.execute("UPDATE users SET public_key=%s WHERE username=%s",
+                            (public_key, username))
+        except mariadb.Error as error:
+            return JSONResponse(False, "Database error: {}".format(error))
+
+        db_conn.commit()
+
+    response = JSONResponse(True)
+
+    if personal_key:
+        response.personal_key = personal_key
+
+    return response
 
 def logout(session):
     """ Logs a user out by destroying all session info. """
