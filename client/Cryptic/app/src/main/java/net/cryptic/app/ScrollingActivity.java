@@ -2,9 +2,11 @@ package net.cryptic.app;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -65,6 +67,11 @@ public class ScrollingActivity extends AppCompatActivity {
         } catch (ParseException e){
             e.printStackTrace();
         }
+
+        IntentFilter statusIntentFilter = new IntentFilter("MESSAGE_RECEIVED");
+        ConnectSender sender = new ConnectSender();
+        LocalBroadcastManager.getInstance(this).registerReceiver(sender, statusIntentFilter);
+
         conversations.add(new Conversation("Andrew", date));
         conversations.add(new Conversation("Edward", date2));
         conversations.add(new Conversation("Sean", date3));

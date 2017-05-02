@@ -16,6 +16,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -39,8 +40,24 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.HttpsURLConnection;
 
 /**
@@ -59,7 +76,10 @@ public class LoginActivity extends AppCompatActivity {
     private View mProgressView;
     private View mLoginFormView;
 
-    private String PREFS_NAME = "CRYPTIC_DATA";
+    private final byte[] AAD_GCM = "CRYPTIC_MESSAGE".getBytes();
+    private final int GCM_NONCE_LENGTH = 12;
+    private final int GCM_TAG_LENGTH = 16;
+    private final String PREFS_NAME = "CRYPTIC_DATA";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -225,6 +245,7 @@ public class LoginActivity extends AppCompatActivity {
             URL url = null;
             HttpURLConnection conn = null;
             String response;
+            boolean newkey = false;
 
             HashMap<String, String> form = new HashMap<>();
 
@@ -236,6 +257,44 @@ public class LoginActivity extends AppCompatActivity {
                 form.put("cookie", settings.getString("cookie", null));
                 Log.i("OUTPUT", "Cookie sent: " + cookie);
             }
+
+            String private_key = settings.getString("private_key", null);
+
+            if (private_key == null) {
+                newkey = true;
+
+                //Initialize curve to a NIST standard
+                ECGenParameterSpec ecParamSpec = new ECGenParameterSpec("secp224k1");
+
+                try {
+                    //Create Key Generator
+                    KeyPairGenerator kpg = KeyPairGenerator.getInstance("ECDH", "BC");
+                    kpg.initialize(ecParamSpec);
+
+                    //Create keypair
+                    KeyPair kp = kpg.generateKeyPair();
+
+                    //Store Keys as Strings
+                    String pubStr = Base64.encodeToString(kp.getPublic().getEncoded(), Base64.DEFAULT);
+                    String privStr = Base64.encodeToString(kp.getPrivate().getEncoded(), Base64.DEFAULT);
+
+                    KeyFactory kf = KeyFactory.getInstance("ECDH", "BC");
+
+                    //Encode Keys
+                    X509EncodedKeySpec x509ks = new X509EncodedKeySpec(Base64.decode(pubStr, Base64.DEFAULT));
+                    PublicKey pubKey = kf.generatePublic(x509ks);
+                    PKCS8EncodedKeySpec p8ks = new PKCS8EncodedKeySpec(Base64.decode(privStr, Base64.DEFAULT));
+                    PrivateKey privKey = kf.generatePrivate(p8ks);
+
+                    String public_key = new String(pubKey.getEncoded());
+                    private_key = new String(privKey.getEncoded());
+                    form.put("public_key", public_key);
+                } catch (InvalidAlgorithmParameterException | NoSuchProviderException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+                    e.printStackTrace();
+                }
+            }
+            else
+                form.put("public_key", "PLACEHOLDER_KEY_IGNORE");
 
             form.put("username", mUsername);
             form.put("password", mPassword);
@@ -272,13 +331,44 @@ public class LoginActivity extends AppCompatActivity {
                     //Removed action response from server
                     //action = jsonResponse.getString("action");
                     success = jsonResponse.getBoolean("success");
+                    String personal_key = jsonResponse.getString("personal_key");
 
                     SharedPreferences.Editor editor = settings.edit();
                     cookie = Storage.setCookies(conn.getHeaderFields());
                     editor.putString("cookie", cookie);
 
+                    if (newkey) {
+                        byte[] privkey = private_key.getBytes();
+                        byte[] perskey = personal_key.getBytes();
+                        SecretKeySpec Encryption_Spec = new SecretKeySpec(perskey, "AES");
+
+                        //Random generator for GCM nonce
+                        SecureRandom random = new SecureRandom();
+
+                        //Create encryption cipher
+                        Cipher c = Cipher.getInstance("AES/GCM/NoPadding", "SunJCE");
+                        final byte[] nonce = new byte[GCM_NONCE_LENGTH];
+                        random.nextBytes(nonce);
+                        GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, nonce);
+                        c.init(Cipher.ENCRYPT_MODE, Encryption_Spec, spec);
+                        c.update(AAD_GCM);
+
+                        String GCM_NONCE = new String(nonce);
+                        editor.putString("decryption_nonce", GCM_NONCE); //horribly insecure and defeats the point
+
+                        byte[] Encrypted_Private_Key = c.doFinal(privkey);
+                        String Secure_Key = new String(Encrypted_Private_Key);
+                        editor.putString("private_key", Secure_Key);
+                    }
+
                     editor.apply();
                     Log.i("OUTPUT", "Cookie stored: " + cookie);
+
+                    if (success) {
+                        Intent mServiceIntent = new Intent(loginActivity, ServerListener.class);
+                        mServiceIntent.putExtra("personal_key", personal_key);
+                        startService(mServiceIntent);
+                    }
 
                     if (!success && !(mUsername.equals("cookie") && mPassword.equals("cookie")))
                         message = jsonResponse.getString("message");
@@ -304,8 +394,6 @@ public class LoginActivity extends AppCompatActivity {
             showProgress(false);
 
             if (success) {
-                Intent mServiceIntent = new Intent(loginActivity, ServerListener.class);
-                startService(mServiceIntent);
                 Intent intent = new Intent(loginActivity, ScrollingActivity.class);
                 startActivity(intent);
             }
