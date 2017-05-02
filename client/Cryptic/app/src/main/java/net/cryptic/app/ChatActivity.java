@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.FileInputStream;
@@ -30,7 +31,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private List<JSONObject> messages;
     private FileOutputStream outputStream;
-    private ListView msgList;
+    private ListView mListView;
     private AutoCompleteTextView mMessageView;
     List<String> stringList = new ArrayList<>();
 
@@ -40,7 +41,7 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        //ArrayAdapter adapter = new ArrayAdapter<>(this, R.layout.listview, stringList);
+        ArrayAdapter adapter = new ArrayAdapter<>(this, R.layout.listview, stringList);
         //ArrayAdapter<String> msgAdapter = new ArrayAdapter<String>(this, R.layout.conversation_list, R.id.message, msgList);
 
         Intent intent = getIntent();
@@ -99,10 +100,25 @@ public class ChatActivity extends AppCompatActivity {
 
         */
 
-        //msgList = (ListView) findViewById(R.id.chatView);
         //msgList = new ListView(this);
-        //msgList.setAdapter(adapter);
 
+        //Create fake JSON message for now
+        JSONObject jsonObj = new JSONObject();
+        try {
+            jsonObj.put("contact", contact);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            jsonObj.put("message", "THE FIRST MESSAGE TEST");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+
+        mListView = (ListView) findViewById(R.id.messageList);
+        mListView.setAdapter(adapter);
 
         mMessageView = (AutoCompleteTextView) findViewById(R.id.messageToSend);
         mMessageView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -114,8 +130,6 @@ public class ChatActivity extends AppCompatActivity {
                 }
                 return false;
             }
-
-
         });
     }
 
