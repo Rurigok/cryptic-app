@@ -58,7 +58,7 @@ public class ConnectSender extends BroadcastReceiver {
         byte[] nonce = intent.getByteArrayExtra("nonce");
 
         try {
-            Cipher c = Cipher.getInstance("AES/GCM/NoPadding", "SunJCE");
+            Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
             GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, nonce);
             c.init(Cipher.DECRYPT_MODE, keyspec, spec);
             c.updateAAD(AAD_GCM);
@@ -94,13 +94,13 @@ public class ConnectSender extends BroadcastReceiver {
 
             SecretKeySpec DecryptionSpec = new SecretKeySpec(DecryptionKey, "AES");
 
-            Cipher DecryptionCipher = Cipher.getInstance("AES/GCM/NoPadding", "SunJCE");
+            Cipher DecryptionCipher = Cipher.getInstance("AES/GCM/NoPadding");
             GCMParameterSpec GCMDecrypt = new GCMParameterSpec(GCM_TAG_LENGTH * 8, decryption_nonce);
             DecryptionCipher.init(Cipher.DECRYPT_MODE, DecryptionSpec, GCMDecrypt);
             DecryptionCipher.updateAAD(AAD_GCM);
             byte[] decrypted_bytes = DecryptionCipher.doFinal(encrypted_bytes);
 
-            Cipher EncryptionCipher = Cipher.getInstance("AES/GCM/NoPadding", "SunJCE");
+            Cipher EncryptionCipher = Cipher.getInstance("AES/GCM/NoPadding");
             GCMParameterSpec GCMEncrypt = new GCMParameterSpec(GCM_TAG_LENGTH * 8, nonce);
             EncryptionCipher.init(Cipher.ENCRYPT_MODE, keyspec, GCMEncrypt);
             EncryptionCipher.updateAAD(AAD_GCM);

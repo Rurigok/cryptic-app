@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.spongycastle.jcajce.provider.symmetric.ARC4;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -291,8 +292,9 @@ public class LoginActivity extends AppCompatActivity {
                     PKCS8EncodedKeySpec p8ks = new PKCS8EncodedKeySpec(Base64.decode(privStr, Base64.DEFAULT));
                     PrivateKey privKey = kf.generatePrivate(p8ks);
 
-                    String public_key = new String(pubKey.getEncoded());
-                    private_key = new String(privKey.getEncoded());
+                    String public_key = Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT);
+                    Log.i("PUBLIC_KEY", public_key);
+                    private_key = Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT);
                     form.put("public_key", public_key);
                 } catch (InvalidAlgorithmParameterException | NoSuchProviderException | NoSuchAlgorithmException | InvalidKeySpecException e) {
                     e.printStackTrace();
@@ -333,7 +335,7 @@ public class LoginActivity extends AppCompatActivity {
                         response += line;
                     }
                     JSONObject jsonResponse = new JSONObject(response);
-                    Log.i("JSON RESPONSE: ", jsonResponse.toString());
+                    Log.i("JSON_RESPONSE", jsonResponse.toString());
                     //Removed action response from server
                     //action = jsonResponse.getString("action");
                     success = jsonResponse.getBoolean("success");
@@ -343,7 +345,7 @@ public class LoginActivity extends AppCompatActivity {
                     }
                     catch (JSONException e) {
                         e.printStackTrace();
-                        Log.d("JSON ERROR: ", "Andrew probably hasn't fixed things yet.");
+                        Log.d("JSON ERROR", "Andrew probably hasn't fixed things yet.");
                     }
 
                     SharedPreferences.Editor editor = settings.edit();
@@ -359,7 +361,7 @@ public class LoginActivity extends AppCompatActivity {
                         SecureRandom random = new SecureRandom();
 
                         //Create encryption cipher
-                        Cipher c = Cipher.getInstance("AES/GCM/NoPadding", "SunJCE");
+                        Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
                         final byte[] nonce = new byte[GCM_NONCE_LENGTH];
                         random.nextBytes(nonce);
                         GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, nonce);
@@ -375,7 +377,7 @@ public class LoginActivity extends AppCompatActivity {
                     }
 
                     editor.apply();
-                    Log.i("OUTPUT", "Cookie stored: " + cookie);
+                    Log.i("OUTPUT", "Cookie stored" + cookie);
 
                     if (success) {
                         Intent mServiceIntent = new Intent(loginActivity, ServerListener.class);
