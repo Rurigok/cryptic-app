@@ -3,11 +3,8 @@ package net.cryptic.app;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.IntentService;
-import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 
@@ -26,6 +23,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
@@ -37,7 +35,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.InvalidAlgorithmParameterException;
@@ -49,6 +46,7 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -80,6 +78,10 @@ public class LoginActivity extends AppCompatActivity {
     private final int GCM_NONCE_LENGTH = 12;
     private final int GCM_TAG_LENGTH = 16;
     private final String PREFS_NAME = "CRYPTIC_DATA";
+
+    static {
+        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -249,6 +251,9 @@ public class LoginActivity extends AppCompatActivity {
 
             HashMap<String, String> form = new HashMap<>();
 
+            String selfIP = Utils.getIPAddress(true);
+            form.put("device_ip", selfIP);
+
             SharedPreferences settings = getApplication().getSharedPreferences(PREFS_NAME, 0);
 
             String cookie = settings.getString("cookie", null);
@@ -268,7 +273,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 try {
                     //Create Key Generator
-                    KeyPairGenerator kpg = KeyPairGenerator.getInstance("ECDH", "BC");
+                    KeyPairGenerator kpg = KeyPairGenerator.getInstance("ECDH", "SC");
                     kpg.initialize(ecParamSpec);
 
                     //Create keypair
@@ -278,7 +283,7 @@ public class LoginActivity extends AppCompatActivity {
                     String pubStr = Base64.encodeToString(kp.getPublic().getEncoded(), Base64.DEFAULT);
                     String privStr = Base64.encodeToString(kp.getPrivate().getEncoded(), Base64.DEFAULT);
 
-                    KeyFactory kf = KeyFactory.getInstance("ECDH", "BC");
+                    KeyFactory kf = KeyFactory.getInstance("ECDH", "SC");
 
                     //Encode Keys
                     X509EncodedKeySpec x509ks = new X509EncodedKeySpec(Base64.decode(pubStr, Base64.DEFAULT));
@@ -300,7 +305,7 @@ public class LoginActivity extends AppCompatActivity {
             form.put("password", mPassword);
 
             // TODO: https functionality
-
+            Log.i("URL POST", "Posting now.");
             try{
                 url = new URL("http://andrew.sanetra.me/cryptic/login");
                 conn = (HttpURLConnection) url.openConnection();
@@ -328,16 +333,24 @@ public class LoginActivity extends AppCompatActivity {
                         response += line;
                     }
                     JSONObject jsonResponse = new JSONObject(response);
+                    Log.i("JSON RESPONSE: ", jsonResponse.toString());
                     //Removed action response from server
                     //action = jsonResponse.getString("action");
                     success = jsonResponse.getBoolean("success");
-                    String personal_key = jsonResponse.getString("personal_key");
+                    String personal_key = null;
+                    try {
+                        personal_key = jsonResponse.getString("personal_key");
+                    }
+                    catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("JSON ERROR: ", "Andrew probably hasn't fixed things yet.");
+                    }
 
                     SharedPreferences.Editor editor = settings.edit();
                     cookie = Storage.setCookies(conn.getHeaderFields());
                     editor.putString("cookie", cookie);
 
-                    if (newkey) {
+                    if (newkey && personal_key != null) {
                         byte[] privkey = private_key.getBytes();
                         byte[] perskey = personal_key.getBytes();
                         SecretKeySpec Encryption_Spec = new SecretKeySpec(perskey, "AES");

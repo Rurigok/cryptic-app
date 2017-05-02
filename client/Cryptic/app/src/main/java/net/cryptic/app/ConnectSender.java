@@ -3,7 +3,6 @@ package net.cryptic.app;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.util.Base64;
 
 import org.json.JSONException;
@@ -65,14 +64,14 @@ public class ConnectSender extends BroadcastReceiver {
             c.updateAAD(AAD_GCM);
             byte[] private_key = c.doFinal(intent.getByteArrayExtra("private_key"));
 
-            KeyFactory kf = KeyFactory.getInstance("ECDH", "BC");
+            KeyFactory kf = KeyFactory.getInstance("ECDH", "SC");
 
             X509EncodedKeySpec x509ks = new X509EncodedKeySpec(Base64.decode(key, Base64.DEFAULT));
             PublicKey pubKey = kf.generatePublic(x509ks);
             PKCS8EncodedKeySpec p8ks = new PKCS8EncodedKeySpec(private_key);
             PrivateKey privKey = kf.generatePrivate(p8ks);
 
-            KeyAgreement KA = KeyAgreement.getInstance("ECDH", "BC");
+            KeyAgreement KA = KeyAgreement.getInstance("ECDH", "SC");
             KA.init(privKey);
             KA.doPhase(pubKey, true);
 
