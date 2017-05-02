@@ -174,7 +174,11 @@ def message_route():
 @bp.route("/update-directory", methods=["POST"])
 def update_directory():
     """ Updates the client status in the directory for message routing. """
-    pass
+
+    if "device_ip" not in request.form:
+        pass
+
+    
 
 if __name__ == '__main__':
     app.register_blueprint(bp, url_prefix="/cryptic")

@@ -94,6 +94,8 @@ def update_route():
 def push_message(ip_address, message):
     """ Connects to a client app and sends a message request """
 
+    message = message + "\n"
+
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # get local machine name
