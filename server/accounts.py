@@ -56,7 +56,7 @@ def login(session, username, password, device_ip, public_key):
 
     # Find user in DB
     try:
-        cursor.execute("SELECT username, password, is_admin, personal_key FROM users WHERE username=%s",
+        cursor.execute("SELECT id, username, password, is_admin, personal_key FROM users WHERE username=%s",
                        (username,))
     except mariadb.Error as error:
         return JSONResponse(False, "Database error: {}".format(error))
@@ -66,7 +66,7 @@ def login(session, username, password, device_ip, public_key):
     if len(rows) != 1:
         return JSONResponse(False, "Invalid username or password")
 
-    fetched_username, hashed_password, is_admin, personal_key = rows[0]
+    user_id, fetched_username, hashed_password, is_admin, personal_key = rows[0]
 
     # Encode passwords for use in bcrypt
     password = password.encode("UTF-8")
@@ -84,13 +84,35 @@ def login(session, username, password, device_ip, public_key):
 
     # save device ip if given
     if device_ip:
+
+        # check for existing directory entry
         try:
-            cursor.execute("UPDATE directory INNER JOIN users ON users.id = directory.user_id SET device_ip=%s WHERE username=%s",
-                            (device_ip, username))
+            cursor.execute("SELECT device_ip FROM directory INNER JOIN users ON users.id = directory.user_id WHERE username=%s",
+                            (username,))
         except mariadb.Error as error:
             return JSONResponse(False, "Database error: {}".format(error))
 
-        db_conn.commit()
+        rows = cursor.fetchall()
+
+        if len(rows) == 1:
+            # run update if different
+            fetched_ip = rows[0]
+
+            if fetched_ip != device_ip:
+                try:
+                    cursor.execute("UPDATE directory INNER JOIN users ON users.id = directory.user_id SET device_ip=%s WHERE username=%s",
+                                    (device_ip, username))
+                except mariadb.Error as error:
+                    return JSONResponse(False, "Database error: {}".format(error))
+                db_conn.commit()
+        else:
+            # run insert
+            try:
+                cursor.execute("INSERT INTO directory (user_id, device_ip) VALUES (%s, %s)",
+                                (user_id, device_ip))
+            except mariadb.Error as error:
+                return JSONResponse(False, "Database error: {}".format(error))
+            db_conn.commit()
 
     # save public key if given
     if public_key:
@@ -99,7 +121,6 @@ def login(session, username, password, device_ip, public_key):
                             (public_key, username))
         except mariadb.Error as error:
             return JSONResponse(False, "Database error: {}".format(error))
-
         db_conn.commit()
 
     response = JSONResponse(True)
