@@ -14,11 +14,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <EditText
-            android:id="@+id/editText"
-            style="@style/Widget.AppCompat.EditText"
+        <AutoCompleteTextView
+            android:id="@+id/messageToSend"
+            style="@style/Widget.AppCompat.AutoCompleteTextView"
+            android:layout_height="wrap_content"
             android:layout_width="match_parent"
-            android:layout_height="52dp" />
+            android:imeActionId="@+id/sendMessage"
+            android:imeActionLabel="@string/action_send_message"
+            android:imeOptions="actionUnspecified"
+            android:inputType="textLongMessage"/>
+
     </android.support.design.widget.TextInputLayout>
 
 </LinearLayout>
