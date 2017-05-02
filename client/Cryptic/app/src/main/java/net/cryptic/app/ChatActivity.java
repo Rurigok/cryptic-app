@@ -2,6 +2,7 @@ package net.cryptic.app;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -50,7 +51,7 @@ public class ChatActivity extends AppCompatActivity {
 
         // Try to open file
         try {
-            inputStream = openFileInput(contact + ".txt");
+            inputStream = new FileInputStream(Environment.getExternalStorageDirectory() + "/" + contact + ".txt");
             this.outputStream = openFileOutput(contact + ".txt", Context.MODE_PRIVATE);
             StringBuilder fileContent = new StringBuilder();
             Log.i("FILE READ", "FILE DOES EXIST");
