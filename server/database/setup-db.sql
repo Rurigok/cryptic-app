@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS cryptic.users (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(255) NOT NULL,
   password VARCHAR(255) NOT NULL,
-  personal_key VARCHAR(2048),
-  public_key VARCHAR(2048),
+  personal_key VARCHAR(32),         -- Personal Key = 256-bit
+  public_key VARCHAR(108),          -- Public Key   = 864-bit
   is_admin TINYINT DEFAULT 0
 ) ENGINE = InnoDB;
 
@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS cryptic.directory (
     FOREIGN KEY (user_id) REFERENCES users (id)
     ON DELETE CASCADE
     ON UPDATE RESTRICT,
-  device_ip VARCHAR(255)
+  device_ip VARCHAR(255),
+  last_updated TIMESTAMP NOT NULL
 ) ENGINE = InnoDB;
 
 -- Grant database user privileges

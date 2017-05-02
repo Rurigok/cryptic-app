@@ -22,7 +22,7 @@ public class Conversation {
             this.fromUser += "over a minute ago";
         else if((diffSec > (60 * 60)) && (diffSec < (60 * 60 * 24)))
             this.fromUser += "over an hour ago";
-        else if((diffSec > (60 * 60 * 24)))
+        else if((diffSec > (60 * 60 * 24)) && (diffSec < (60 * 60 * 24 * 7)))
             this.fromUser += "over a day ago";
         else
             this.fromUser += "long long ago...";

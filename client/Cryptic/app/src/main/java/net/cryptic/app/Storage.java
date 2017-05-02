@@ -14,10 +14,8 @@ import java.util.Map;
 public class Storage {
 
     static CookieManager cookieManager = new CookieManager();
-    private static int responseCode;
 
-
-    public static void setCookies(Map<String, List<String>> headerFields){
+    public static String setCookies(Map<String, List<String>> headerFields){
 
         List<String> cookiesHeader = headerFields.get("Set-Cookie");
 
@@ -26,7 +24,9 @@ public class Storage {
                 cookieManager.getCookieStore().add(null, HttpCookie.parse(cookie).get(0));
             }
         }
-        Log.i("OUTPUT", "Cookie stored: " + cookieManager.getCookieStore().getCookies());
+        Log.i("OUTPUT", "Cookie parsed: " + cookieManager.getCookieStore().getCookies());
+
+        return cookieManager.getCookieStore().getCookies().toString();
     }
 }
 

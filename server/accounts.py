@@ -6,9 +6,11 @@ This module handles all account state operations, such as:
 """
 import bcrypt
 import MySQLdb as mariadb
+import os
 import random
 import string
 
+from base64 import b64encode
 from functools import wraps
 
 from response import JSONResponse
@@ -32,9 +34,9 @@ def uses_db(func):
         # Connect to database
         global db_conn
         db_conn = mariadb.connect(host='localhost',
-                                       db='cryptic',
-                                       user='cryptic_user',
-                                       passwd='deployment_password')
+                                  db='cryptic',
+                                  user='cryptic_user',
+                                  passwd='deployment_password')
         # Database cursor
         global cursor
         cursor = db_conn.cursor()
@@ -81,9 +83,16 @@ def login(session, username, password):
 
     return JSONResponse(False, "Login not yet implemented")
 
-@uses_db
-def logout(username):
-    pass
+def logout(session):
+    """ Logs a user out by destroying all session info. """
+
+    if "username" not in session:
+        return JSONResponse(False, "Not logged in")
+
+    for k in session:
+        del session[k]
+
+    return JSONResponse(True)
 
 @uses_db
 def create_account(username):
@@ -152,4 +161,8 @@ def generate_password():
 
 def generate_personal_key():
     """ Generates a random symmetric encryption key. """
-    return None
+
+    key = os.urandom(32)
+    skey = b64encode(key).decode('utf-8')
+
+    return skey

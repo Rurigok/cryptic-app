@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 from flask import Blueprint, Flask, redirect, render_template, request, session
+
 from response import JSONResponse
 
 import accounts
+import routing
 
 # App settings
 app = Flask(__name__)
@@ -129,6 +131,44 @@ def create_account_post():
         return response.to_json(), 200
 
     response = accounts.create_account(username)
+
+    return response.to_json(), 200
+
+@bp.route("/send-message", methods=["POST"])
+def message_route():
+    """ Mediate peer-to-peer connections.
+
+    Expected request parameters:
+        target: the user that we are requesting a route to
+
+    Returns:
+        JSONResponse detailing the request result
+    """
+
+    response = JSONResponse()
+
+    # Check login status
+    if "username" not in session:
+        response.success = False
+        response.message = "You must be logged in to request a route"
+        return response.to_json(), 200
+
+    requester = session["username"]
+
+    # Form validation
+    if "target" not in request.form:
+        response.success = False
+        response.message = "No target provided for routing"
+        return response.to_json(), 200
+
+    target = request.form["target"]
+
+    if len(target) > 255:
+        response.success = False
+        response.message = "Target user field may not exceed 255 characters"
+        return response.to_json(), 200
+
+    response = routing.get_message_route(requester, target)
 
     return response.to_json(), 200
 
