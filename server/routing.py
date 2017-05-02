@@ -2,7 +2,9 @@
 This module handles directory routing for sending messages and any other
 message-related activities.
 """
+import json
 import MySQLdb as mariadb
+import socket
 
 from functools import wraps
 
@@ -74,12 +76,40 @@ def get_message_route(requester_user, target_user):
     requester_key, requester_ip = rows[0]
 
     # Send requester ip and key to target (via socket to target)
-
+    message = {}
+    message["sender_ip"] = requester_ip
+    message["sender_public_key"] = requester_key
+    push_message(target_ip, json.dumps(message))
 
     # Return target ip and key to requester (via original http response)
     response = JSONResponse(True)
     response.target_ip = target_ip
     response.target_public_key = target_key
 
-def push_message(ip_address, message):
+@uses_db
+def update_route():
+    """ Stores an updated IP address for a client. """
     pass
+
+def push_message(ip_address, message):
+    """ Connects to a client app and sends a message request """
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # get local machine name
+    host = ip_address
+    port = 5677
+
+    print("connecting to socket: {}:{}".format(host, port))
+
+    # connect to client
+    s.connect((host, port))
+
+    # prepare message
+    message = message.encode("utf-8")
+
+    sent = s.send(message)
+
+    s.close()
+
+    print("send {} bytes".format(sent))

@@ -83,11 +83,10 @@ def login_post():
             if session["username"] == username:
                 # Already logged in as person who they are trying to login as
                 response.success = True
-                return response.to_json(), 200
             else:
                 response.success = False
                 response.message = "You are already logged in as someone else"
-                return response.to_json(), 200
+            return response.to_json(), 200
 
         # Perform login
         response = accounts.login(session, username, password)
@@ -171,6 +170,11 @@ def message_route():
     response = routing.get_message_route(requester, target)
 
     return response.to_json(), 200
+
+@bp.route("/update-directory", methods=["POST"])
+def update_directory():
+    """ Updates the client status in the directory for message routing. """
+    pass
 
 if __name__ == '__main__':
     app.register_blueprint(bp, url_prefix="/cryptic")
