@@ -3,7 +3,6 @@ package net.cryptic.app;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -13,6 +12,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -51,11 +51,32 @@ public class ServerListener extends IntentService {
             Socket sock = socket.accept();
 
             BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-            String message = in.readLine();
-            JSONObject payload = new JSONObject(message);
+            PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
+            in.close();
 
-            String sender_ip = payload.getString("sender_ip");
-            String sender_key = payload.getString("sender_public_key");
+            String message = in.readLine();
+
+            String sender_ip = null;
+            String sender_key = null;
+
+            try {
+                JSONObject payload = new JSONObject(message);
+
+                sender_ip = payload.getString("sender_ip");
+                sender_key = payload.getString("sender_public_key");
+                out.write(0);
+                out.flush();
+            } catch (JSONException e) {
+                out.write(1);
+                out.flush();
+                out.close();
+                sock.close();
+                socket.close();
+                return;
+            }
+            out.close();
+            sock.close();
+            socket.close();
 
             Intent localIntent = new Intent("MESSAGE_RECEIVED");
             localIntent.putExtra("SENDER_IP", sender_ip);
@@ -65,7 +86,7 @@ public class ServerListener extends IntentService {
             localIntent.putExtra("nonce", nonce);
             LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
 
-        } catch (JSONException | IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
