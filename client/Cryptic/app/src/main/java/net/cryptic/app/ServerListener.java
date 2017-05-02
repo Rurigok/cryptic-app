@@ -2,6 +2,7 @@ package net.cryptic.app;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -20,6 +21,9 @@ import java.net.Socket;
  */
 
 public class ServerListener extends IntentService {
+
+    private final String PREFS_NAME = "CRYPTIC_DATA";
+
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
      *
@@ -35,7 +39,12 @@ public class ServerListener extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
+        SharedPreferences settings = getApplication().getSharedPreferences(PREFS_NAME, 0);
+
         int port = 5677;
+        String personal_key = intent.getStringExtra("personal_key");
+        String private_key = settings.getString("private_key", null);
+        byte[] nonce = settings.getString("decryption_nonce", null).getBytes();
 
         try {
             ServerSocket socket = new ServerSocket(port);
@@ -51,6 +60,9 @@ public class ServerListener extends IntentService {
             Intent localIntent = new Intent("MESSAGE_RECEIVED");
             localIntent.putExtra("SENDER_IP", sender_ip);
             localIntent.putExtra("SENDER_KEY", sender_key);
+            localIntent.putExtra("personal_key", personal_key);
+            localIntent.putExtra("private_key", private_key.getBytes());
+            localIntent.putExtra("nonce", nonce);
             LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
 
         } catch (JSONException | IOException e) {
