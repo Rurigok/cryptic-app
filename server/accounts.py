@@ -36,7 +36,9 @@ def uses_db(func):
         db_conn = mariadb.connect(host='localhost',
                                   db='cryptic',
                                   user='cryptic_user',
-                                  passwd='deployment_password')
+                                  passwd='deployment_password',
+                                  use_unicode=True,
+                                  charset='utf8')
         # Database cursor
         global cursor
         cursor = db_conn.cursor()
