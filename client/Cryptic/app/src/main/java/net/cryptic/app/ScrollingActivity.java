@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -68,10 +69,21 @@ public class ScrollingActivity extends AppCompatActivity {
             Log.d("OUTPUT", c.getDate().toString());
         }
 
-        ArrayAdapter adapter = new ArrayAdapter<String>(this,
-                R.layout.listview, stringList);
+        ArrayAdapter adapter = new ArrayAdapter<>(this, R.layout.listview, stringList);
 
         messages = (ListView) findViewById(R.id.convList);
         messages.setAdapter(adapter);
+
+        messages.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String entry = (String) parent.getAdapter().getItem(position);
+                Intent intent = new Intent(ScrollingActivity.this, ChatActivity.class);
+                String contact = entry.split("\n")[0];
+                Log.i("OUTPUT", "Conversation Entry: " + contact);
+                intent.putExtra("CONTACT_NAME", contact);
+                startActivity(intent);
+            }
+        });
     }
 }
