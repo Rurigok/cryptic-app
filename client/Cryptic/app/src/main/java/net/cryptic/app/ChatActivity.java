@@ -19,6 +19,7 @@ import org.json.JSONObject;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ import me.himanshusoni.chatmessageview.ChatMessageView;
 public class ChatActivity extends AppCompatActivity {
 
     private List<JSONObject> messages;
+    private FileOutputStream outputStream;
     private ListView msgList;
     private AutoCompleteTextView mMessageView;
     List<String> stringList = new ArrayList<>();
@@ -37,13 +39,46 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-        ArrayAdapter adapter = new ArrayAdapter<>(this, R.layout.listview, stringList);
+
+        //ArrayAdapter adapter = new ArrayAdapter<>(this, R.layout.listview, stringList);
+        //ArrayAdapter<String> msgAdapter = new ArrayAdapter<String>(this, R.layout.conversation_list, R.id.message, msgList);
 
         Intent intent = getIntent();
         String contact = intent.getStringExtra("CONTACT_NAME");
         Log.i("OUTPUT", "Contact Name: " + contact);
         getSupportActionBar().setTitle(contact);
 
+
+        FileInputStream inputStream;
+
+        // Try to open file
+        try {
+            inputStream = openFileInput(contact + ".txt");
+            this.outputStream = openFileOutput(contact + ".txt", Context.MODE_PRIVATE);
+            StringBuilder fileContent = new StringBuilder();
+            Log.i("FILE READ", "FILE DOES EXIST");
+            byte[] buffer = new byte[1024];
+            int n;
+            while ((n = inputStream.read(buffer)) != -1)
+            {
+                Log.i("FILE READ", "JUST READ: " + buffer.toString());
+                fileContent.append(new String(buffer, 0, n));
+            }
+            inputStream.close();
+        } catch (FileNotFoundException f) {
+            Log.i("NOTIFY", "NO FILE FOUND: " + f.getMessage());
+            //Try to create file
+            try {
+                this.outputStream = openFileOutput(contact + ".txt", Context.MODE_PRIVATE);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        /*
         try {
             FileInputStream in = new FileInputStream(Environment.getExternalStorageDirectory() + "/" + contact + ".txt");
             StringBuilder fileContent = new StringBuilder();
@@ -62,9 +97,11 @@ public class ChatActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        */
 
-        msgList = (ListView) findViewById(R.id.chatView);
-        msgList.setAdapter(adapter);
+        //msgList = (ListView) findViewById(R.id.chatView);
+        //msgList = new ListView(this);
+        //msgList.setAdapter(adapter);
 
 
         mMessageView = (AutoCompleteTextView) findViewById(R.id.messageToSend);
@@ -86,7 +123,15 @@ public class ChatActivity extends AppCompatActivity {
 
         Editable message = mMessageView.getText();
 
-        Log.i("Output", "SENDING MESSAGE: " + message);
-        mMessageView.setText("");
+        Log.i("Output", "SENDING MESSAGE:" + message);
+        if (mMessageView.length() > 0) {
+            mMessageView.getText().clear();
+        }
+        String str = message.toString();
+        try {
+            outputStream.write(str.getBytes());
+        } catch(Exception e){
+            e.printStackTrace();
+        }
     }
 }
