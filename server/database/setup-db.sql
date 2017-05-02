@@ -1,6 +1,8 @@
 -- Rebuild database
 DROP DATABASE IF EXISTS cryptic;
-CREATE DATABASE cryptic;
+CREATE DATABASE cryptic
+  CHARACTER SET = 'utf8'
+  COLLATE = 'utf8_general_ci';
 
 -- Create standard user
 DROP USER 'cryptic_user'@'%';
@@ -32,6 +34,9 @@ CREATE TABLE IF NOT EXISTS cryptic.directory (
 -- Grant database user privileges
 GRANT SELECT, INSERT, UPDATE, DELETE ON cryptic.users TO 'cryptic_user'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON cryptic.users TO 'cryptic_user'@'localhost';
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON cryptic.directory TO 'cryptic_user'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON cryptic.directory TO 'cryptic_user'@'localhost';
 
 -- Add testing/development data
 -- TestUser : testpassword
