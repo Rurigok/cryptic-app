@@ -1,8 +1,10 @@
 package net.cryptic.app;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -12,6 +14,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,7 +29,7 @@ import java.util.Locale;
 public class ScrollingActivity extends AppCompatActivity {
 
     List<Conversation> conversations = new ArrayList<>();
-    ListView messages;
+    ListView convos;
     List<String> stringList = new ArrayList<>();
     private String PREFS_NAME = "CRYPTIC_DATA";
 
@@ -62,19 +69,36 @@ public class ScrollingActivity extends AppCompatActivity {
         conversations.add(new Conversation("Edward", date2));
         conversations.add(new Conversation("Sean", date3));
 
+        FileWriter out;
         for(Conversation c : conversations)
         {
-            stringList.add(c.getFromUser());
+            stringList.add(c.getDisplay());
+            Log.i("Inform me", "NOW!");
+            try {
+                Log.i("Inform me", Environment.getExternalStorageDirectory().toString());
+                File file = new File(Environment.getExternalStorageDirectory(), c.getFromUser() + ".txt");
+                out = new FileWriter(file);
+                //out.append(c.getFromUser());
+                out.write(c.getFromUser());
+                out.flush();
+                out.close();
+
+                Log.i("Inform me", "YO!");
+            } catch(FileNotFoundException e){
+                e.printStackTrace();
+            } catch(IOException e){
+                e.printStackTrace();
+            }
             Log.d("OUTPUT", c.getFromUser());
             Log.d("OUTPUT", c.getDate().toString());
         }
 
         ArrayAdapter adapter = new ArrayAdapter<>(this, R.layout.listview, stringList);
 
-        messages = (ListView) findViewById(R.id.convList);
-        messages.setAdapter(adapter);
+        convos = (ListView) findViewById(R.id.convList);
+        convos.setAdapter(adapter);
 
-        messages.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        convos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String entry = (String) parent.getAdapter().getItem(position);
