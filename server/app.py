@@ -66,6 +66,9 @@ def login_post():
         username = request.form["username"]
         password = request.form["password"]
 
+        if "device_ip" in request.form:
+            device_ip = request.form["device_ip"]
+
         if len(username) > 255:
             response.success = False
             response.message = "Username field may not exceed 255 characters"
@@ -89,7 +92,7 @@ def login_post():
             return response.to_json(), 200
 
         # Perform login
-        response = accounts.login(session, username, password)
+        response = accounts.login(session, username, password, device_ip)
 
         return response.to_json(), 200
 
@@ -178,7 +181,7 @@ def update_directory():
     if "device_ip" not in request.form:
         pass
 
-    
+
 
 if __name__ == '__main__':
     app.register_blueprint(bp, url_prefix="/cryptic")

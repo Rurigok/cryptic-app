@@ -48,11 +48,13 @@ def uses_db(func):
     return func_wrapper
 
 @uses_db
-def login(session, username, password):
+def login(session, username, password, device_ip):
     """ Attempts to login the given user with the given password.
 
     Returns: a JSONResponse object detailing the result of the login request
     """
+
+    # TODO: save device ip
 
     # Find user in DB
     try:
