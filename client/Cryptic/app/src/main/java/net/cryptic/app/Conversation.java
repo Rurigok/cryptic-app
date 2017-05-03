@@ -11,6 +11,7 @@ public class Conversation {
     private String fromUser;
     private Date date;
     private String display;
+    private List<StoredMessage> messages = new ArrayList<>();
 
     public Conversation(String fromUser, Date date)
     {
@@ -29,6 +30,14 @@ public class Conversation {
             display += "over a day ago";
         else
             display += "long long ago...";
+    }
+
+    public List<StoredMessage> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<StoredMessage> messages) {
+        this.messages = messages;
     }
 
     public String getDisplay() {

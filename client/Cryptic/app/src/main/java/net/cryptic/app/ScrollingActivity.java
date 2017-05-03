@@ -36,7 +36,7 @@ public class ScrollingActivity extends AppCompatActivity {
     private String PREFS_NAME = "CRYPTIC_DATA";
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scrolling);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -72,7 +72,9 @@ public class ScrollingActivity extends AppCompatActivity {
         ConnectSender sender = new ConnectSender();
         LocalBroadcastManager.getInstance(this).registerReceiver(sender, statusIntentFilter);
 
-        conversations.add(new Conversation("Andrew", date));
+        Conversation convo = new Conversation("Andrew", date);
+        convo.getMessages().add(new StoredMessage("Andrew", 30));
+        conversations.add(convo);
         conversations.add(new Conversation("Edward", date2));
         conversations.add(new Conversation("Sean", date3));
 
@@ -110,6 +112,7 @@ public class ScrollingActivity extends AppCompatActivity {
                 String contact = entry.split("\n")[0];
                 Log.i("OUTPUT", "Conversation Entry: " + contact);
                 intent.putExtra("CONTACT_NAME", contact);
+                intent.putExtra("personal_key", getIntent().getStringExtra("personal_key"));
                 startActivity(intent);
             }
         });

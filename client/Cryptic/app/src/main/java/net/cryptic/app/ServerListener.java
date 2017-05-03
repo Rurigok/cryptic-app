@@ -52,9 +52,9 @@ public class ServerListener extends IntentService {
 
             BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
             PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
-            in.close();
 
             String message = in.readLine();
+            in.close();
 
             String sender_ip = null;
             String sender_key = null;

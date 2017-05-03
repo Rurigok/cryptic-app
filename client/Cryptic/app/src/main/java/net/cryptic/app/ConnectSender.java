@@ -20,6 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -41,6 +42,10 @@ public class ConnectSender extends BroadcastReceiver {
 
     private final byte[] AAD_GCM = "CRYPTIC_MESSAGE".getBytes();
     private final int GCM_TAG_LENGTH = 16;
+
+    static {
+        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+    }
 
     public ConnectSender() {
         super();
@@ -107,6 +112,7 @@ public class ConnectSender extends BroadcastReceiver {
             byte[] recrypted_bytes = EncryptionCipher.doFinal(decrypted_bytes);
 
             // TODO: Write encrypted JSON to file
+            //received.get("");
         } catch (JSONException | IOException | NoSuchPaddingException | NoSuchAlgorithmException |
                 NoSuchProviderException | InvalidAlgorithmParameterException |InvalidKeyException |
                 BadPaddingException | IllegalBlockSizeException | InvalidKeySpecException e) {

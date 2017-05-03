@@ -30,12 +30,8 @@ import java.util.List;
 
 public class ChatActivity extends AppCompatActivity {
 
-    public static String storedOrReceived;
-    public static int deletionTimer;
     public static String flags;
-    public static String nonceString;
     public static JsonUtil jsonUtil = new JsonUtil();
-    private List<JSONObject> messages;
     private FileOutputStream outputStream;
     private ListView mListView;
     private Button composeMessage;
@@ -67,7 +63,7 @@ public class ChatActivity extends AppCompatActivity {
             Log.i("FILE READ", "FILE DOES EXIST");
             byte[] buffer = new byte[1024];
             int n;
-            while ((n = inputStream.read(buffer)) != -1)
+            while ((n = inputStream.read(buffer)) > 0)
             {
                 Log.i("FILE READ", "JUST READ: " + buffer.toString());
                 fileContent.append(new String(buffer, 0, n));
@@ -103,8 +99,8 @@ public class ChatActivity extends AppCompatActivity {
         mListView.setDivider(null);
         mListView.setDividerHeight(0);
 
-        StoredMessage mes = new StoredMessage("MINE!");
-        StoredMessage mes2 = new StoredMessage("YOURS!");
+        StoredMessage mes = new StoredMessage("MINE!", 0);
+        StoredMessage mes2 = new StoredMessage("YOURS!", 0);
         mes.sentOrReceived = "SENT";
         mes2.sentOrReceived = "RECEIVED";
         adapter.add(mes);
@@ -115,21 +111,11 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ChatActivity.this, ComposeMessage.class);
+                intent.putExtra("personal_key", getIntent().getStringExtra("personal_key"));
                 intent.putExtra("CONTACT_NAME", getIntent().getStringExtra("CONTACT_NAME"));
                 startActivity(intent);
             }
         });
-        /*mMessageView = (AutoCompleteTextView) findViewById(R.id.messageToSend);
-        mMessageView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if(id == R.id.sendMessage || id == EditorInfo.IME_NULL) {
-                    //sendMessage();
-                    return true;
-                }
-                return false;
-            }
-        });*/
     }
 
     /*private void sendMessage() {
