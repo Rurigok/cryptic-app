@@ -51,7 +51,8 @@ public class ChatActivity extends AppCompatActivity {
 
         // Try to open file
         try {
-            inputStream = new FileInputStream(Environment.getExternalStorageDirectory() + "/" + contact + ".txt");
+            inputStream = openFileInput(contact + ".txt");
+            //inputStream = new FileInputStream(Environment.getExternalStorageDirectory() + "/" + contact + ".txt");
             this.outputStream = openFileOutput(contact + ".txt", Context.MODE_PRIVATE);
             StringBuilder fileContent = new StringBuilder();
             Log.i("FILE READ", "FILE DOES EXIST");
