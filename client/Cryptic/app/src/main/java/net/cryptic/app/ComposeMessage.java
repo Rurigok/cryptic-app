@@ -2,6 +2,7 @@ package net.cryptic.app;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
@@ -73,6 +74,8 @@ public class ComposeMessage extends AppCompatActivity {
     private final int GCM_TAG_LENGTH = 16;
     private final String PREFS_NAME = "CRYPTIC_DATA";
 
+    private ComposeMessage.SendMessageTask mSendTask = null;
+
     static {
         Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
     }
@@ -114,154 +117,8 @@ public class ComposeMessage extends AppCompatActivity {
 
         Log.i("INPUT DATA", "TEXT: " + text + " TARGET: " + target + " KEY: " + encryptionString + " TIMEOUT: " + timeout);
 
-        URL url = null;
-        HttpURLConnection conn = null;
-        String response;
-
-        SharedPreferences settings = getApplication().getSharedPreferences(PREFS_NAME, 0);
-
-        HashMap<String, String> form = new HashMap<>();
-
-        form.put("username", settings.getString("username", null));
-        form.put("target", target);
-
-        try{
-            url = new URL("http://andrew.sanetra.me/cryptic/login");
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-
-            OutputStream outputPost = new BufferedOutputStream(conn.getOutputStream());
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputPost, "UTF-8"));
-            writer.write(urlEncode(form));
-            writer.flush();
-            writer.close();
-            outputPost.close();
-            conn.connect();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        String public_key = "";
-        String device_ip = "";
-
-        try {
-            if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
-                response = "";
-                String line;
-                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                while ((line = br.readLine()) != null) {
-                    response += line;
-                }
-                JSONObject jsonResponse = new JSONObject(response);
-                Log.i("JSON_RESPONSE", jsonResponse.toString());
-                //Removed action response from server
-                //action = jsonResponse.getString("action");
-                public_key = jsonResponse.getString("public_key");
-                device_ip = jsonResponse.getString("device_ip");
-            }
-            else {
-                Log.i("CRITICAL_ERROR", "Somewhere, something went very wrong.");
-            }
-        } catch (JSONException | IOException e) {
-            Log.i("CRITICAL_ERROR", "Somewhere, something went very wrong.");
-            e.printStackTrace();
-        }
-
-        byte[] encrypted_private = settings.getString("private_key", null).getBytes();
-        byte[] public_bytes = public_key.getBytes();
-
-        byte[] personal_key = getIntent().getStringExtra("personal_key").getBytes();
-        SecretKeySpec keyspec = new SecretKeySpec(personal_key, "AES");
-
-        String encrypted_message = "";
-        String GCM_NONCE = "";
-
-        try {
-            //Random generator for GCM nonce
-            SecureRandom random = new SecureRandom();
-            final byte[] nonce = new byte[GCM_NONCE_LENGTH];
-            random.nextBytes(nonce);
-            GCM_NONCE = new String(nonce);
-
-            //Create encryption cipher
-            Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
-            byte[] decryption_nonce = settings.getString("nonce", null).getBytes();
-            GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, decryption_nonce);
-            c.init(Cipher.DECRYPT_MODE, keyspec, spec);
-            c.update(AAD_GCM);
-            byte[] decrypted_private = c.doFinal(encrypted_private);
-
-            KeyFactory kf = KeyFactory.getInstance("ECDH", "SC");
-
-            X509EncodedKeySpec x509ks = new X509EncodedKeySpec(Base64.decode(public_bytes, Base64.DEFAULT));
-            PublicKey pubKey = kf.generatePublic(x509ks);
-            PKCS8EncodedKeySpec p8ks = new PKCS8EncodedKeySpec(decrypted_private);
-            PrivateKey privKey = kf.generatePrivate(p8ks);
-
-            KeyAgreement KA = KeyAgreement.getInstance("ECDH", "SC");
-            KA.init(privKey);
-            KA.doPhase(pubKey, true);
-
-            SecretKey sharedKey = KA.generateSecret("ECDH");
-
-            MessageDigest keyDigest = MessageDigest.getInstance("SHA-512/256");
-            keyDigest.update(sharedKey.getEncoded());
-            byte[] EncryptionKey = keyDigest.digest();
-
-            byte[] plaintext_bytes = text.getBytes();
-
-            SecretKeySpec EncryptionSpec = new SecretKeySpec(EncryptionKey, "AES");
-
-            Cipher EncryptionCipher = Cipher.getInstance("AES/GCM/NoPadding");
-            GCMParameterSpec GCMEncrypt = new GCMParameterSpec(GCM_TAG_LENGTH * 8, nonce);
-            EncryptionCipher.init(Cipher.DECRYPT_MODE, EncryptionSpec, GCMEncrypt);
-            EncryptionCipher.updateAAD(AAD_GCM);
-            byte[] encrypted_bytes = EncryptionCipher.doFinal(plaintext_bytes);
-
-            encrypted_message = new String(encrypted_bytes);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
-                InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException
-                | InvalidKeySpecException | NoSuchProviderException e) {
-            e.printStackTrace();
-        }
-
-        String nonceString = GCM_NONCE;
-        SentMessage message = new SentMessage(encrypted_message, nonceString, timeout);
-
-        String payload = "";
-
-        try {
-            payload = JsonUtil.toJSon(message);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        int port = 5677;
-
-        try {
-            ServerSocket socket = new ServerSocket(port);
-            Socket sock = socket.accept();
-
-            // Quit if fraudulent IP tries to connect
-                    /*if (!sock.getInetAddress().getHostAddress().equals(device_ip)) {
-                        sock.close();
-                        socket.close();
-                    }*/
-
-            PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
-            out.write(payload);
-            out.close();
-            sock.close();
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        Intent intent = new Intent(ComposeMessage.this, ChatActivity.class);
-        intent.putExtra("CONTACT_NAME", target);
-        intent.putExtra("personal_key", new String(personal_key));
-        startActivity(intent);
+        mSendTask = new ComposeMessage.SendMessageTask(this, text, target, encryptionString, timeout);
+        mSendTask.execute((Void) null);
     }
 
     public String urlEncode(HashMap<String, String> form) {
@@ -281,5 +138,180 @@ public class ComposeMessage extends AppCompatActivity {
         }
 
         return encoded.toString();
+    }
+
+    public class SendMessageTask extends AsyncTask<Void, Void, Boolean> {
+
+        private final ComposeMessage composeMessage;
+        private final String mMessage;
+        private final String mTarget;
+        private final String mEncryption;
+        private final int mTimeout;
+
+        private String action = "";
+        private boolean success = false;
+        private String message = "";
+
+        SendMessageTask(ComposeMessage composeMessage, String message, String target, String encryption, int timeout) {
+            this.composeMessage = composeMessage;
+            this.mMessage = message;
+            this.mTarget = target;
+            this.mEncryption = encryption;
+            this.mTimeout = timeout;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            URL url = null;
+            HttpURLConnection conn = null;
+            String response;
+
+            SharedPreferences settings = getApplication().getSharedPreferences(PREFS_NAME, 0);
+
+            HashMap<String, String> form = new HashMap<>();
+
+            form.put("username", settings.getString("username", null));
+            form.put("target", "TestUser");
+
+            try{
+                url = new URL("http://andrew.sanetra.me/cryptic/login");
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setDoOutput(true);
+
+                OutputStream outputPost = new BufferedOutputStream(conn.getOutputStream());
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputPost, "UTF-8"));
+                writer.write(urlEncode(form));
+                writer.flush();
+                writer.close();
+                outputPost.close();
+                conn.connect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            String public_key = "";
+            String device_ip = "";
+
+            try {
+                if (conn.getResponseCode() == HttpsURLConnection.HTTP_OK) {
+                    response = "";
+                    String line;
+                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                    while ((line = br.readLine()) != null) {
+                        response += line;
+                    }
+                    JSONObject jsonResponse = new JSONObject(response);
+                    Log.i("JSON_RESPONSE", jsonResponse.toString());
+                    //Removed action response from server
+                    //action = jsonResponse.getString("action");
+                    public_key = jsonResponse.getString("public_key");
+                    device_ip = jsonResponse.getString("device_ip");
+                }
+                else {
+                    Log.i("CRITICAL_ERROR", "Somewhere, something went very wrong.");
+                }
+            } catch (JSONException | IOException e) {
+                Log.i("CRITICAL_ERROR", "Somewhere, something went very wrong.");
+                e.printStackTrace();
+            }
+
+            byte[] encrypted_private = settings.getString("private_key", null).getBytes();
+            byte[] public_bytes = public_key.getBytes();
+
+            byte[] personal_key = getIntent().getStringExtra("personal_key").getBytes();
+            SecretKeySpec keyspec = new SecretKeySpec(personal_key, "AES");
+
+            String encrypted_message = "";
+            String GCM_NONCE = "";
+
+            try {
+                //Random generator for GCM nonce
+                SecureRandom random = new SecureRandom();
+                final byte[] nonce = new byte[GCM_NONCE_LENGTH];
+                random.nextBytes(nonce);
+                GCM_NONCE = new String(nonce);
+
+                //Create encryption cipher
+                Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
+                byte[] decryption_nonce = settings.getString("decryption_nonce", null).getBytes();
+                GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, decryption_nonce);
+                c.init(Cipher.DECRYPT_MODE, keyspec, spec);
+                c.update(AAD_GCM);
+                byte[] decrypted_private = c.doFinal(encrypted_private);
+
+                KeyFactory kf = KeyFactory.getInstance("ECDH", "SC");
+
+                X509EncodedKeySpec x509ks = new X509EncodedKeySpec(Base64.decode(public_bytes, Base64.DEFAULT));
+                PublicKey pubKey = kf.generatePublic(x509ks);
+                PKCS8EncodedKeySpec p8ks = new PKCS8EncodedKeySpec(decrypted_private);
+                PrivateKey privKey = kf.generatePrivate(p8ks);
+
+                KeyAgreement KA = KeyAgreement.getInstance("ECDH", "SC");
+                KA.init(privKey);
+                KA.doPhase(pubKey, true);
+
+                SecretKey sharedKey = KA.generateSecret("ECDH");
+
+                MessageDigest keyDigest = MessageDigest.getInstance("SHA-512/256");
+                keyDigest.update(sharedKey.getEncoded());
+                byte[] EncryptionKey = keyDigest.digest();
+
+                byte[] plaintext_bytes = mMessage.getBytes();
+
+                SecretKeySpec EncryptionSpec = new SecretKeySpec(EncryptionKey, "AES");
+
+                Cipher EncryptionCipher = Cipher.getInstance("AES/GCM/NoPadding");
+                GCMParameterSpec GCMEncrypt = new GCMParameterSpec(GCM_TAG_LENGTH * 8, nonce);
+                EncryptionCipher.init(Cipher.DECRYPT_MODE, EncryptionSpec, GCMEncrypt);
+                EncryptionCipher.updateAAD(AAD_GCM);
+                byte[] encrypted_bytes = EncryptionCipher.doFinal(plaintext_bytes);
+
+                encrypted_message = new String(encrypted_bytes);
+            } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
+                    InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException
+                    | InvalidKeySpecException | NoSuchProviderException e) {
+                e.printStackTrace();
+            }
+
+            String nonceString = GCM_NONCE;
+            SentMessage message = new SentMessage(encrypted_message, nonceString, mTimeout);
+
+            String payload = "";
+
+            try {
+                payload = JsonUtil.toJSon(message);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            int port = 5677;
+
+            try {
+                ServerSocket socket = new ServerSocket(port);
+                Socket sock = socket.accept();
+
+                // Quit if fraudulent IP tries to connect
+                    /*if (!sock.getInetAddress().getHostAddress().equals(device_ip)) {
+                        sock.close();
+                        socket.close();
+                    }*/
+
+                PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
+                out.write(payload);
+                out.close();
+                sock.close();
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            Intent intent = new Intent(ComposeMessage.this, ChatActivity.class);
+            intent.putExtra("CONTACT_NAME", mTarget);
+            intent.putExtra("personal_key", new String(personal_key));
+            startActivity(intent);
+
+            return true;
+        }
     }
 }

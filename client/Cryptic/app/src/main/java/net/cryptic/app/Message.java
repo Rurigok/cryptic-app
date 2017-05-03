@@ -85,7 +85,7 @@ class JsonUtil {
         message.type.trim();
         try {
             // Here we convert Java Object to JSON
-            //if("STORED".equals(message.type)) {
+            if("STORED".equals(message.type)) {
                 StoredMessage tmp = (StoredMessage) message;
                 jsonObj.put("message", tmp.message); // Set the first name/pair
                 jsonObj.put("sentOrReceived", tmp.sentOrReceived);
@@ -93,7 +93,7 @@ class JsonUtil {
                 jsonObj.put("dateStored", tmp.dateStored);
                 jsonObj.put("firstRead", tmp.firstRead);
                 jsonObj.put("flags", tmp.flags);
-            //}
+            }
             /*if("SENT".equals(message.type)) {
                 SentMessage tmp = (SentMessage) message;
                 jsonObj.put("message", tmp.message); // Set the first name/pair
