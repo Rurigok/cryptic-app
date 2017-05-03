@@ -174,7 +174,7 @@ public class ComposeMessage extends AppCompatActivity {
             form.put("target", mTarget);
 
             try{
-                url = new URL("http://andrew.sanetra.me/cryptic/login");
+                url = new URL("http://andrew.sanetra.me/cryptic/send-message");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setDoOutput(true);
