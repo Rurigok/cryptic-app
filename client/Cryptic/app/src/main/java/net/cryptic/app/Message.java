@@ -56,13 +56,13 @@ class SentMessage extends Message{
 }
 
 
-public class JsonUtil {
+class JsonUtil {
 
     public static String toJSon(Message message) throws JSONException {
         JSONObject jsonObj = new JSONObject();
         try {
             // Here we convert Java Object to JSON
-            if(message.type.equals("STORED"){
+            if(message.type.equals("STORED")) {
                 StoredMessage tmp = (StoredMessage) message;
                 jsonObj.put("message", tmp.message); // Set the first name/pair
                 jsonObj.put("sentOrReceived", tmp.sentOrReceived);
@@ -90,5 +90,6 @@ public class JsonUtil {
         catch(JSONException ex) {
             ex.printStackTrace();
         }
+        return null;
     }
 }
