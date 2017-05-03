@@ -17,10 +17,6 @@ import android.widget.EditText;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.spongycastle.jce.ECNamedCurveTable;
-import org.spongycastle.jce.spec.ECNamedCurveParameterSpec;
-import org.spongycastle.jce.spec.ECNamedCurveSpec;
-import org.spongycastle.jce.spec.ECPrivateKeySpec;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -33,8 +29,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -53,7 +47,6 @@ import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
 import java.util.HashMap;
 
 import javax.crypto.BadPaddingException;
@@ -294,15 +287,7 @@ public class ComposeMessage extends AppCompatActivity {
 
                 KeyFactory kf = KeyFactory.getInstance("ECDH", "SC");
 
-                ECNamedCurveParameterSpec ECspec = ECNamedCurveTable.getParameterSpec("secp192r1");
-
-                ECPrivateKeySpec ecPrivateKeySpec = new ECPrivateKeySpec(new BigInteger(1, decrypted_private), ECspec);
-
-                ECNamedCurveSpec ECparams = new ECNamedCurveSpec("secp192r1", ECspec.getCurve(), ECspec.getG(), ECspec.getN());
-                java.security.spec.ECPoint w = new java.security.spec.ECPoint(new BigInteger(1, Arrays.copyOfRange(public_bytes, 0, 24)), new BigInteger(1, Arrays.copyOfRange(public_bytes, 24, 48)));
-                PublicKey publicKey = kf.generatePublic(new java.security.spec.ECPublicKeySpec(w, ECparams));
-
-                X509EncodedKeySpec x509ks = new X509EncodedKeySpec(publicKey.getEncoded());
+                X509EncodedKeySpec x509ks = new X509EncodedKeySpec(public_bytes);
                 PublicKey pubKey = kf.generatePublic(x509ks);
                 PKCS8EncodedKeySpec p8ks = new PKCS8EncodedKeySpec(decrypted_private);
                 PrivateKey privKey = kf.generatePrivate(p8ks);
