@@ -18,18 +18,29 @@
             <div class="row">
                 <div class="col-sm-5">
                     <h2>Create New User</h2>
-                    <form action="/create-account" method="POST">
+                    <form action="/cryptic/create-account" method="POST">
                         <div class="form-group">
                             <label for="username">Username</label>
                             <input type="text" class="form-control" name="username" id="username" placeholder="Enter username">
                         </div>
                         <div class="form-group">
+
+                            {% if "create_account_success" in session %}
+                            <label for="password">Generated Password</label>
+                            <input type="text" class="form-control" name="password" id="password" value="{{ session["generated_password"] }}" readonly>
+                            {% else %}
                             <label for="password">Password</label>
                             <input type="password" class="form-control" name="password" id="password" placeholder="A password will be randomly generated" disabled>
+                            {% endif %}
                         </div>
-                        {% if "login_error" in session %}
+                        {% if "create_account_error" in session %}
                         <div class="alert alert-danger" role="alert">
-                            {{ session["login_error"] }}
+                            {{ session["create_account_error"] }}
+                        </div>
+                        {% endif %}
+                        {% if "create_account_success" in session %}
+                        <div class="alert alert-success" role="alert">
+                            Account created successfully!
                         </div>
                         {% endif %}
                         <input type="hidden" name="medium" value="admin_web">

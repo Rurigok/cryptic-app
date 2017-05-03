@@ -112,6 +112,8 @@ def push_message(ip_address, message):
 
     sent = s.send(message)
 
+    response_code = s.recv(1)
+
     s.close()
 
-    print("send {} bytes".format(sent))
+    print("sent {} bytes. response: {}".format(sent, response_code))

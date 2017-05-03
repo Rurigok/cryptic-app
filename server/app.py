@@ -26,8 +26,10 @@ def admin_console():
 
     if "is_admin" in session:
         if session["is_admin"] < accounts.ADMIN:
+            session["login_error"] = "You do not have sufficient privileges to access the admin console"
             return redirect("/cryptic/admin/login")
     else:
+        session["login_error"] = "You do not have sufficient privileges to access the admin console"
         return redirect("/cryptic/admin/login")
 
     return render_template("console.html")
@@ -47,7 +49,47 @@ def login_post():
 
     if "medium" in request.form and request.form["medium"] == "admin_web":
         # request is from web
-        return "Not yet implemented", 501
+
+        # Form validation
+        if "username" not in request.form:
+            session["login_error"] = "No username provided for login"
+            return redirect("/cryptic/admin/login")
+
+        if "password" not in request.form:
+            rsession["login_error"] = "No password provided for login"
+            return redirect("/cryptic/admin/login")
+
+        username = request.form["username"]
+        password = request.form["password"]
+
+        if len(username) > 255:
+            session["login_error"] = "Username may not exceed 255 characters"
+            return redirect("/cryptic/admin/login")
+
+        if len(password) > 255:
+            session["login_error"] = "Password may not exceed 255 characters"
+            return redirect("/cryptic/admin/login")
+
+        # Check for active sessions
+        if "username" in session:
+            print("username in session found: ", session["username"])
+            # Client is already logged in as someone
+            if session["username"] == username:
+                # Already logged in as person who they are trying to login as
+                return redirect("/cryptic/admin/console")
+            else:
+                session.clear()
+                #session["login_error"] = "You are already logged in as someone else"
+                #return redirect("/cryptic/admin/login")
+
+        # Perform login
+        response = accounts.login(session, username, password, None, None)
+
+        if response.success:
+            return redirect("/cryptic/admin/console")
+
+        session["login_error"] = response.message
+        return redirect("/cryptic/admin/login")
 
     else:
         # assume request is from app
@@ -112,36 +154,36 @@ def create_account_post():
 
     # Check login status and privileges
     if "username" not in session:
-        response.success = False
-        response.message = "You must be logged in"
-        return response.to_json(), 200
+        session["create_account_error"] = "You must be logged in"
+        return redirect("/cryptic/admin/console")
 
     if "is_admin" in session:
         if session["is_admin"] < accounts.ADMIN:
-            response.success = False
-            response.message = "Insufficient privileges for account creation"
-            return response.to_json(), 200
+            session["create_account_error"] = "Insufficient privileges for account creation"
+            return redirect("/cryptic/admin/console")
     else:
-        response.success = False
-        response.message = "Insufficient privileges for account creation"
-        return response.to_json(), 200
+        session["create_account_error"] = "Insufficient privileges for account creation"
+        return redirect("/cryptic/admin/console")
 
     # Form validation
     if "username" not in request.form:
-        response.success = False
-        response.message = "No username provided for account creation"
-        return response.to_json(), 200
+        session["create_account_error"] = "No username provided for account creation"
+        return redirect("/cryptic/admin/console")
 
     username = request.form["username"]
 
-    if len(username) > 255:
-        response.success = False
-        response.message = "Username field may not exceed 255 characters"
-        return response.to_json(), 200
+    if len(username) > 255 or len(username) < 3:
+        session["create_account_error"] = "Username must be between 3 and 255 characters"
+        return redirect("/cryptic/admin/console")
 
-    response = accounts.create_account(username)
+    response = accounts.create_account(session, username)
 
-    return response.to_json(), 200
+    if response.success:
+        session["create_account_success"] = True
+    else:
+        session["create_account_error"] = response.message
+
+    return redirect("/cryptic/admin/console")
 
 @bp.route("/send-message", methods=["POST"])
 def message_route():
