@@ -26,17 +26,16 @@ class StoredMessage extends Message{
     String dateStored;
     String firstRead;
 
-    public StoredMessage(String string){
+    public StoredMessage(String string, int timeout){
         this.type = "STORED";
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
         this.message = string;
         this.sentOrReceived = "RECEIVED";
-        this.deletionTimer = ChatActivity.deletionTimer;
+        this.deletionTimer = timeout;
         this.dateStored = sdf.format(new Date());
         this.firstRead = sdf.format(new Date());
         this.flags = ChatActivity.flags;
     }
-
 }
 
 
@@ -44,12 +43,12 @@ class SentMessage extends Message{
     String nonceString;
     String dateSent;
 
-    public SentMessage(String string){
+    public SentMessage(String string, String nonce, int timeout){
         this.type = "SENT";
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
         this.message = string;
-        this.nonceString = ChatActivity.nonceString;
-        this.deletionTimer = ChatActivity.deletionTimer;
+        this.nonceString = nonce;
+        this.deletionTimer = timeout;
         this.dateSent = sdf.format(new Date());
         this.flags = ChatActivity.flags;
     }

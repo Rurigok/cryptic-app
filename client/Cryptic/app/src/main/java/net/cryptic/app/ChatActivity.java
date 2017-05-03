@@ -30,10 +30,7 @@ import java.util.List;
 
 public class ChatActivity extends AppCompatActivity {
 
-    public static String storedOrReceived;
-    public static int deletionTimer;
     public static String flags;
-    public static String nonceString;
     public static JsonUtil jsonUtil = new JsonUtil();
     private List<JSONObject> messages;
     private FileOutputStream outputStream;
@@ -104,8 +101,8 @@ public class ChatActivity extends AppCompatActivity {
         mListView.setDivider(null);
         mListView.setDividerHeight(0);
 
-        StoredMessage mes = new StoredMessage("MINE!");
-        StoredMessage mes2 = new StoredMessage("YOURS!");
+        StoredMessage mes = new StoredMessage("MINE!", 0);
+        StoredMessage mes2 = new StoredMessage("YOURS!", 0);
         mes.sentOrReceived = "SENT";
         mes2.sentOrReceived = "RECEIVED";
         adapter.add(mes);
@@ -117,6 +114,7 @@ public class ChatActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(ChatActivity.this, ComposeMessage.class);
                 //intent.putExtra("CONTACT_NAME", contact);
+                intent.putExtra("personal_key", getIntent().getStringExtra("personal_key"));
                 startActivity(intent);
             }
         });

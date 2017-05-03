@@ -25,7 +25,6 @@ import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.spongycastle.jcajce.provider.symmetric.ARC4;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -79,6 +78,7 @@ public class LoginActivity extends AppCompatActivity {
     private final int GCM_NONCE_LENGTH = 12;
     private final int GCM_TAG_LENGTH = 16;
     private final String PREFS_NAME = "CRYPTIC_DATA";
+    private String personal_key;
 
     static {
         Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
@@ -307,7 +307,6 @@ public class LoginActivity extends AppCompatActivity {
             form.put("password", mPassword);
 
             // TODO: https functionality
-            Log.i("URL POST", "Posting now.");
             try{
                 url = new URL("http://andrew.sanetra.me/cryptic/login");
                 conn = (HttpURLConnection) url.openConnection();
@@ -339,7 +338,7 @@ public class LoginActivity extends AppCompatActivity {
                     //Removed action response from server
                     //action = jsonResponse.getString("action");
                     success = jsonResponse.getBoolean("success");
-                    String personal_key = null;
+                    personal_key = null;
                     try {
                         personal_key = jsonResponse.getString("personal_key");
                     }
@@ -351,6 +350,7 @@ public class LoginActivity extends AppCompatActivity {
                     SharedPreferences.Editor editor = settings.edit();
                     cookie = Storage.setCookies(conn.getHeaderFields());
                     editor.putString("cookie", cookie);
+                    editor.putString("username", mUsername);
 
                     if (newkey && personal_key != null) {
                         byte[] privkey = private_key.getBytes();
@@ -410,6 +410,7 @@ public class LoginActivity extends AppCompatActivity {
 
             if (success) {
                 Intent intent = new Intent(loginActivity, ScrollingActivity.class);
+                intent.putExtra("personal_key", personal_key);
                 startActivity(intent);
             }
             else {
@@ -448,7 +449,6 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             return encoded.toString();
-
         }
 
     }
