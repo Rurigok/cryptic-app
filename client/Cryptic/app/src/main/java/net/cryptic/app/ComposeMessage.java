@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -53,16 +54,19 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.HttpsURLConnection;
 
+import android.widget.TextView;
+
 /**
  * Created by Edward on 5/2/2017.
  */
 
 public class ComposeMessage extends AppCompatActivity {
+    TextView contactText;
 
     private EditText mEncryptView;
     private EditText mTimeoutView;
     private EditText mMessageView;
-    private EditText mTargetView;
+    //private EditText mTargetView;
 
     private final byte[] AAD_GCM = "CRYPTIC_MESSAGE".getBytes();
     private final int GCM_NONCE_LENGTH = 12;
@@ -77,17 +81,21 @@ public class ComposeMessage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.compose_message);
 
+        contactText = (TextView) findViewById(R.id.contactText);
+        contactText.setText(getIntent().getStringExtra("CONTACT_NAME"));
+
         mEncryptView = (EditText) findViewById(R.id.encyptText);
         mTimeoutView = (EditText) findViewById(R.id.timeoutText);
         mMessageView = (EditText) findViewById(R.id.messageText);
-        mTargetView = (EditText) findViewById(R.id.toText);
+        //mTargetView = (EditText) findViewById(R.id.toText);
 
         Button send = (Button) findViewById(R.id.send);
         CheckBox deleteCheck = (CheckBox) findViewById(R.id.deleteBox);
         boolean delete = deleteCheck.isChecked();
 
         final String text = mMessageView.getText().toString();
-        final String target = mTargetView.getText().toString();
+        //final String target = mTargetView.getText().toString();
+        final String target = getIntent().getStringExtra("CONTACT_NAME");
         final String encryptionString = mEncryptView.getText().toString();
         final int timeout;
 

@@ -32,7 +32,14 @@ def admin_console():
         session["login_error"] = "You do not have sufficient privileges to access the admin console"
         return redirect("/cryptic/admin/login")
 
-    return render_template("console.html")
+    ret = render_template("console.html")
+
+    if "create_account_success" in session:
+        del session["create_account_success"]
+    if "create_account_error" in session:
+        del session["create_account_error"]
+
+    return ret
 
 @bp.route("/admin/search-user", methods=["GET"])
 def search_user_get():

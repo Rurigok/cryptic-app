@@ -45,7 +45,6 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-
         //ArrayAdapter<String> msgAdapter = new ArrayAdapter<String>(this, R.layout.conversation_list, R.id.message, msgList);
         adapter = new ChatAdapter(this, new ArrayList<StoredMessage>());
 
@@ -113,8 +112,8 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ChatActivity.this, ComposeMessage.class);
-                //intent.putExtra("CONTACT_NAME", contact);
                 intent.putExtra("personal_key", getIntent().getStringExtra("personal_key"));
+                intent.putExtra("CONTACT_NAME", getIntent().getStringExtra("CONTACT_NAME"));
                 startActivity(intent);
             }
         });
