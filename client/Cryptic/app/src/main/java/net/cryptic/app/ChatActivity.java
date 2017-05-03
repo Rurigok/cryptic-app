@@ -32,7 +32,6 @@ public class ChatActivity extends AppCompatActivity {
 
     public static String flags;
     public static JsonUtil jsonUtil = new JsonUtil();
-    private List<JSONObject> messages;
     private FileOutputStream outputStream;
     private ListView mListView;
     private Button composeMessage;
@@ -64,7 +63,7 @@ public class ChatActivity extends AppCompatActivity {
             Log.i("FILE READ", "FILE DOES EXIST");
             byte[] buffer = new byte[1024];
             int n;
-            while ((n = inputStream.read(buffer)) != -1)
+            while ((n = inputStream.read(buffer)) > 0)
             {
                 Log.i("FILE READ", "JUST READ: " + buffer.toString());
                 fileContent.append(new String(buffer, 0, n));

@@ -112,6 +112,7 @@ public class ConnectSender extends BroadcastReceiver {
             byte[] recrypted_bytes = EncryptionCipher.doFinal(decrypted_bytes);
 
             // TODO: Write encrypted JSON to file
+            //received.get("");
         } catch (JSONException | IOException | NoSuchPaddingException | NoSuchAlgorithmException |
                 NoSuchProviderException | InvalidAlgorithmParameterException |InvalidKeyException |
                 BadPaddingException | IllegalBlockSizeException | InvalidKeySpecException e) {

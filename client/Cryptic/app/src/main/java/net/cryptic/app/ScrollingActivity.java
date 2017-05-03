@@ -72,7 +72,9 @@ public class ScrollingActivity extends AppCompatActivity {
         ConnectSender sender = new ConnectSender();
         LocalBroadcastManager.getInstance(this).registerReceiver(sender, statusIntentFilter);
 
-        conversations.add(new Conversation("Andrew", date));
+        Conversation convo = new Conversation("Andrew", date);
+        convo.getMessages().add(new StoredMessage("Andrew", 30));
+        conversations.add(convo);
         conversations.add(new Conversation("Edward", date2));
         conversations.add(new Conversation("Sean", date3));
 
