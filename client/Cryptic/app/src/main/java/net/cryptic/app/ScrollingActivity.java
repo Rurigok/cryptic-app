@@ -16,6 +16,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 
+import org.json.JSONException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -34,6 +36,7 @@ public class ScrollingActivity extends AppCompatActivity {
     ListView convos;
     List<String> stringList = new ArrayList<>();
     private String PREFS_NAME = "CRYPTIC_DATA";
+    JsonUtil jsonUtil = new JsonUtil();
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -73,10 +76,47 @@ public class ScrollingActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(sender, statusIntentFilter);
 
         Conversation convo = new Conversation("Andrew", date);
-        convo.getMessages().add(new StoredMessage("Andrew", 30));
+        Conversation convo2 = new Conversation("Edward", date2);
+        Conversation convo3 = new Conversation("Sean", date3);
+        StoredMessage mes = new StoredMessage("MINE!", 10);
+        StoredMessage mes2 = new StoredMessage("YOURS!", 20);
+        StoredMessage mes3 = new StoredMessage("I Andrew like paragon", 30);
+
+        StoredMessage met = new StoredMessage("Hey! They have funnel cakes!", 20);
+        StoredMessage met2 = new StoredMessage("Hello", 40);
+        StoredMessage met3 = new StoredMessage("Hi", 30);
+
+        StoredMessage mez = new StoredMessage("Bananas are pretty cool.", 20);
+        StoredMessage mez2 = new StoredMessage("Hello?", 40);
+        StoredMessage mez3 = new StoredMessage("They're out of apples...", 30);
+
+        mes.sentOrReceived = "SENT";
+        mes2.sentOrReceived = "RECEIVED";
+        mes3.sentOrReceived = "RECEIVED";
+
+        met.sentOrReceived = "SENT";
+        met2.sentOrReceived = "RECEIVED";
+        met3.sentOrReceived = "SENT";
+
+        mez.sentOrReceived = "SENT";
+        mez2.sentOrReceived = "SENT";
+        mez3.sentOrReceived = "SENT";
+
+        convo.getMessages().add(mes3);
+        convo.getMessages().add(mes);
+        convo.getMessages().add(mes2);
+
+        convo2.getMessages().add(met3);
+        convo2.getMessages().add(met2);
+        convo2.getMessages().add(met);
+
+        convo3.getMessages().add(mez);
+        convo3.getMessages().add(mez2);
+        convo3.getMessages().add(mez3);
+
         conversations.add(convo);
-        conversations.add(new Conversation("Edward", date2));
-        conversations.add(new Conversation("Sean", date3));
+        conversations.add(convo2);
+        conversations.add(convo3);
 
         FileOutputStream out;
         for(Conversation c : conversations)
@@ -85,7 +125,11 @@ public class ScrollingActivity extends AppCompatActivity {
             Log.i("Inform me", "NOW!");
             try {
                 out = openFileOutput(c.getFromUser() + ".txt", Context.MODE_PRIVATE);
-                out.write(c.getFromUser().getBytes());
+                //out.write(c.getFromUser().getBytes());
+                for(StoredMessage sm : c.getMessages()) {
+                    out.write(jsonUtil.toJSon(sm).getBytes());
+                    out.write("---separator---".getBytes());
+                }
                 out.flush();
                 out.close();
 
@@ -93,6 +137,8 @@ public class ScrollingActivity extends AppCompatActivity {
             } catch(FileNotFoundException e){
                 e.printStackTrace();
             } catch(IOException e){
+                e.printStackTrace();
+            } catch(JSONException e){
                 e.printStackTrace();
             }
             Log.d("OUTPUT", c.getFromUser());

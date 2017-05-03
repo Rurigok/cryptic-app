@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -35,7 +36,8 @@ public class ChatActivity extends AppCompatActivity {
     private FileOutputStream outputStream;
     private ListView mListView;
     private Button composeMessage;
-    //private AutoCompleteTextView mMessageView;
+    List<StoredMessage> messages = new ArrayList<>();
+    List<JSONObject> jsons = new ArrayList<>();
     List<String> stringList = new ArrayList<>();
     private ChatAdapter adapter;
 
@@ -44,7 +46,6 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-        //ArrayAdapter<String> msgAdapter = new ArrayAdapter<String>(this, R.layout.conversation_list, R.id.message, msgList);
         adapter = new ChatAdapter(this, new ArrayList<StoredMessage>());
 
         Intent intent = getIntent();
@@ -54,20 +55,23 @@ public class ChatActivity extends AppCompatActivity {
         StringBuilder fileContent = new StringBuilder();
 
         FileInputStream inputStream;
-
+        JSONObject json = null;
         // Try to open file
         try {
             inputStream = openFileInput(contact + ".txt");
-            //inputStream = new FileInputStream(Environment.getExternalStorageDirectory() + "/" + contact + ".txt");
-            this.outputStream = openFileOutput(contact + ".txt", Context.MODE_PRIVATE);
             Log.i("FILE READ", "FILE DOES EXIST");
             byte[] buffer = new byte[1024];
             int n;
-            while ((n = inputStream.read(buffer)) > 0)
+            while ((n = inputStream.read(buffer)) != -1)
             {
-                Log.i("FILE READ", "JUST READ: " + buffer.toString());
                 fileContent.append(new String(buffer, 0, n));
             }
+            Log.i("FILE READ", "JUST READ: " + fileContent.toString());
+
+            String[] temps = fileContent.toString().split("---separator---");
+            for(String str : temps)
+                jsons.add(new JSONObject((str)));
+
             inputStream.close();
         } catch (FileNotFoundException f) {
             Log.i("NOTIFY", "NO FILE FOUND: " + f.getMessage());
@@ -78,6 +82,8 @@ public class ChatActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e){
             e.printStackTrace();
         }
 
@@ -99,12 +105,15 @@ public class ChatActivity extends AppCompatActivity {
         mListView.setDivider(null);
         mListView.setDividerHeight(0);
 
-        StoredMessage mes = new StoredMessage("MINE!", 0);
-        StoredMessage mes2 = new StoredMessage("YOURS!", 0);
-        mes.sentOrReceived = "SENT";
-        mes2.sentOrReceived = "RECEIVED";
-        adapter.add(mes);
-        adapter.add(mes2);
+        for(JSONObject j : jsons) {
+            try {
+                StoredMessage msg = new StoredMessage(j.getString("message"), j.getInt("deletionTimer"));
+                msg.sentOrReceived = j.getString("sentOrReceived");
+                adapter.add(msg);
+            } catch (JSONException e){
+                e.printStackTrace();
+            }
+        }
 
         composeMessage = (Button) findViewById(R.id.composeMessage);
         composeMessage.setOnClickListener(new View.OnClickListener() {
