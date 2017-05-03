@@ -84,7 +84,7 @@ public class ComposeMessage extends AppCompatActivity {
         contactText = (TextView) findViewById(R.id.contactText);
         contactText.setText(getIntent().getStringExtra("CONTACT_NAME"));
 
-        mEncryptView = (EditText) findViewById(R.id.encyptText);
+        mEncryptView = (EditText) findViewById(R.id.encryptText);
         mTimeoutView = (EditText) findViewById(R.id.timeoutText);
         mMessageView = (EditText) findViewById(R.id.messageText);
         //mTargetView = (EditText) findViewById(R.id.toText);
