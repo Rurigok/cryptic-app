@@ -1,5 +1,6 @@
 package net.cryptic.app;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -17,6 +18,7 @@ import android.widget.ListView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
@@ -74,17 +76,14 @@ public class ScrollingActivity extends AppCompatActivity {
         conversations.add(new Conversation("Edward", date2));
         conversations.add(new Conversation("Sean", date3));
 
-        FileWriter out;
+        FileOutputStream out;
         for(Conversation c : conversations)
         {
             stringList.add(c.getDisplay());
             Log.i("Inform me", "NOW!");
             try {
-                Log.i("Inform me", Environment.getExternalStorageDirectory().toString());
-                File file = new File(Environment.getExternalStorageDirectory(), c.getFromUser() + ".txt");
-                out = new FileWriter(file);
-                //out.append(c.getFromUser());
-                out.write(c.getFromUser());
+                out = openFileOutput(c.getFromUser() + ".txt", Context.MODE_PRIVATE);
+                out.write(c.getFromUser().getBytes());
                 out.flush();
                 out.close();
 
