@@ -1,10 +1,16 @@
 package net.cryptic.app;
 
+import android.content.Context;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static net.cryptic.app.ChatActivity.jsonUtil;
 
 /**
  *
@@ -13,6 +19,7 @@ import java.util.Date;
 
 abstract class Message {
 
+    String from;
     String type;
     String message;
     int deletionTimer;
@@ -37,6 +44,20 @@ class StoredMessage extends Message{
         this.flags = ChatActivity.flags;
     }
 
+    public void storeMessage(StoredMessage msg, AppCompatActivity activity){
+        msg.sentOrReceived = "SENT";
+        msg.type = "STORED";
+        Log.i("Output", "SENDING MESSAGE:" + message);
+        //String str = message.toString();
+        FileOutputStream outputStream;
+        try {
+            outputStream = activity.openFileOutput(msg.from + ".txt", Context.MODE_PRIVATE);
+            outputStream.write(jsonUtil.toJSon(msg).getBytes());
+            Log.i("STORED IN", activity.getFilesDir().getAbsolutePath().toString());
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
 }
 
 
