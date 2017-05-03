@@ -17,6 +17,10 @@ import android.widget.EditText;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.spongycastle.jce.ECNamedCurveTable;
+import org.spongycastle.jce.spec.ECNamedCurveParameterSpec;
+import org.spongycastle.jce.spec.ECNamedCurveSpec;
+import org.spongycastle.jce.spec.ECPrivateKeySpec;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -29,6 +33,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.ServerSocket;
@@ -48,6 +53,7 @@ import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import javax.crypto.BadPaddingException;
@@ -104,11 +110,11 @@ public class ComposeMessage extends AppCompatActivity {
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                storeSend();
-                Intent intent = new Intent(ComposeMessage.this, ChatActivity.class);
-                intent.putExtra("CONTACT_NAME", getIntent().getStringExtra("CONTACT_NAME"));
-                startActivity(intent);
-                //attemptSend();
+                //storeSend();
+                //Intent intent = new Intent(ComposeMessage.this, ChatActivity.class);
+                //intent.putExtra("CONTACT_NAME", getIntent().getStringExtra("CONTACT_NAME"));
+                //startActivity(intent);
+                attemptSend();
             }
         });
     }
@@ -117,7 +123,13 @@ public class ComposeMessage extends AppCompatActivity {
         try {
             FileOutputStream outputStream = openFileOutput(getIntent().getStringExtra("CONTACT_NAME") + ".txt", Context.MODE_APPEND);
             JsonUtil jsonUtil = new JsonUtil();
-            StoredMessage storedMessage = new StoredMessage(mMessageView.getText().toString(), Integer.parseInt(mTimeoutView.getText().toString()));
+            CheckBox deleteCheck = (CheckBox) findViewById(R.id.deleteBox);
+            int timeout;
+            if (deleteCheck.isChecked())
+                timeout = Integer.parseInt(mTimeoutView.getText().toString());
+            else
+                timeout = 0;
+            StoredMessage storedMessage = new StoredMessage(mMessageView.getText().toString(), timeout);
             storedMessage.sentOrReceived = "SENT";
             outputStream.write(jsonUtil.toJSon(storedMessage).getBytes());
         } catch(FileNotFoundException e){
@@ -251,6 +263,7 @@ public class ComposeMessage extends AppCompatActivity {
             byte[] public_bytes = Base64.decode(public_key, Base64.DEFAULT);
 
             String pKey = getIntent().getStringExtra("personal_key");
+            Log.i("PERSONAL_KEY_VERIFY", pKey);
             byte[] personal_key = Base64.decode(pKey, Base64.DEFAULT);
             SecretKeySpec keyspec = new SecretKeySpec(personal_key, "AES");
 
@@ -269,16 +282,26 @@ public class ComposeMessage extends AppCompatActivity {
 
                 //Create encryption cipher
                 Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
-                byte[] decryption_nonce = settings.getString("decryption_nonce", null).getBytes();
-                Log.i("NONCE", settings.getString("decryption_nonce", null));
+                byte[] decryption_nonce = Base64.decode(settings.getString("decryption_nonce", null), Base64.DEFAULT);
+                Log.i("NONCE GET", settings.getString("decryption_nonce", null));
                 GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, decryption_nonce);
                 c.init(Cipher.DECRYPT_MODE, keyspec, spec);
-                c.update(AAD_GCM);
+                //c.update(AAD_GCM);
+                Log.i("DECRYPTION_CIPHER_HASH", c.hashCode()+"");
+                Log.i("AAD_VERIFY", new String(AAD_GCM));
                 byte[] decrypted_private = c.doFinal(encrypted_private);
 
                 KeyFactory kf = KeyFactory.getInstance("ECDH", "SC");
 
-                X509EncodedKeySpec x509ks = new X509EncodedKeySpec(Base64.decode(public_bytes, Base64.DEFAULT));
+                ECNamedCurveParameterSpec ECspec = ECNamedCurveTable.getParameterSpec("secp192r1");
+
+                ECPrivateKeySpec ecPrivateKeySpec = new ECPrivateKeySpec(new BigInteger(1, decrypted_private), ECspec);
+
+                ECNamedCurveSpec ECparams = new ECNamedCurveSpec("secp192r1", ECspec.getCurve(), ECspec.getG(), ECspec.getN());
+                java.security.spec.ECPoint w = new java.security.spec.ECPoint(new BigInteger(1, Arrays.copyOfRange(public_bytes, 0, 24)), new BigInteger(1, Arrays.copyOfRange(public_bytes, 24, 48)));
+                PublicKey publicKey = kf.generatePublic(new java.security.spec.ECPublicKeySpec(w, ECparams));
+
+                X509EncodedKeySpec x509ks = new X509EncodedKeySpec(publicKey.getEncoded());
                 PublicKey pubKey = kf.generatePublic(x509ks);
                 PKCS8EncodedKeySpec p8ks = new PKCS8EncodedKeySpec(decrypted_private);
                 PrivateKey privKey = kf.generatePrivate(p8ks);
@@ -326,6 +349,10 @@ public class ComposeMessage extends AppCompatActivity {
             try {
                 ServerSocket socket = new ServerSocket(port);
                 Socket sock = socket.accept();
+
+                // TODO: Switch to a real timeout time
+
+                sock.setSoTimeout(1);
 
                 // Quit if fraudulent IP tries to connect
                     /*if (!sock.getInetAddress().getHostAddress().equals(device_ip)) {
