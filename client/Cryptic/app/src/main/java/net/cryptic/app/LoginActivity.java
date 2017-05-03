@@ -58,6 +58,8 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.HttpsURLConnection;
 
+import static net.cryptic.app.Storage.cookieManager;
+
 /**
  * A login screen that offers login via user/password.
  */
@@ -259,11 +261,6 @@ public class LoginActivity extends AppCompatActivity {
 
             String cookie = settings.getString("cookie", null);
 
-            if (cookie != null) {
-                form.put("cookie", settings.getString("cookie", null));
-                Log.i("OUTPUT", "Cookie sent: " + cookie);
-            }
-
             String private_key = settings.getString("private_key", null);
 
             if (private_key == null) {
@@ -311,6 +308,12 @@ public class LoginActivity extends AppCompatActivity {
                 url = new URL("http://andrew.sanetra.me/cryptic/login");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
+
+                if (cookie != null) {
+                    conn.setRequestProperty("Cookie", TextUtils.join(";",  cookieManager.getCookieStore().getCookies()));
+                    Log.i("OUTPUT", "Cookie sent: " + cookie);
+                }
+
                 conn.setDoOutput(true);
 
                 OutputStream outputPost = new BufferedOutputStream(conn.getOutputStream());
@@ -353,8 +356,8 @@ public class LoginActivity extends AppCompatActivity {
                     editor.putString("username", mUsername);
 
                     if (newkey && personal_key != null) {
-                        byte[] privkey = private_key.getBytes();
-                        byte[] perskey = personal_key.getBytes();
+                        byte[] privkey = Base64.decode(private_key, Base64.DEFAULT);
+                        byte[] perskey = Base64.decode(personal_key, Base64.DEFAULT);
                         SecretKeySpec Encryption_Spec = new SecretKeySpec(perskey, "AES");
 
                         //Random generator for GCM nonce
@@ -370,6 +373,7 @@ public class LoginActivity extends AppCompatActivity {
 
                         String GCM_NONCE = new String(nonce);
                         editor.putString("decryption_nonce", GCM_NONCE); //horribly insecure and defeats the point
+                        Log.i("NONCE", settings.getString("decryption_nonce", null));
 
                         byte[] Encrypted_Private_Key = c.doFinal(privkey);
                         String Secure_Key = new String(Encrypted_Private_Key);

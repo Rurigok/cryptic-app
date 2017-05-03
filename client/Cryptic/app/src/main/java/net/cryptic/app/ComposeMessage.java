@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -25,6 +26,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -56,6 +58,8 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.HttpsURLConnection;
 
 import android.widget.TextView;
+
+import static net.cryptic.app.Storage.cookieManager;
 
 /**
  * Created by Edward on 5/2/2017.
@@ -177,6 +181,7 @@ public class ComposeMessage extends AppCompatActivity {
                 url = new URL("http://andrew.sanetra.me/cryptic/send-message");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
+                conn.setRequestProperty("Cookie", TextUtils.join(";",  cookieManager.getCookieStore().getCookies()));
                 conn.setDoOutput(true);
 
                 OutputStream outputPost = new BufferedOutputStream(conn.getOutputStream());
@@ -216,10 +221,11 @@ public class ComposeMessage extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            byte[] encrypted_private = settings.getString("private_key", null).getBytes();
-            byte[] public_bytes = public_key.getBytes();
+            byte[] encrypted_private = Base64.decode(settings.getString("private_key", null), Base64.DEFAULT);
+            byte[] public_bytes = Base64.decode(public_key, Base64.DEFAULT);
 
-            byte[] personal_key = getIntent().getStringExtra("personal_key").getBytes();
+            String pKey = getIntent().getStringExtra("personal_key");
+            byte[] personal_key = Base64.decode(pKey, Base64.DEFAULT);
             SecretKeySpec keyspec = new SecretKeySpec(personal_key, "AES");
 
             String encrypted_message = "";
@@ -238,6 +244,7 @@ public class ComposeMessage extends AppCompatActivity {
                 //Create encryption cipher
                 Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
                 byte[] decryption_nonce = settings.getString("decryption_nonce", null).getBytes();
+                Log.i("NONCE", settings.getString("decryption_nonce", null));
                 GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, decryption_nonce);
                 c.init(Cipher.DECRYPT_MODE, keyspec, spec);
                 c.update(AAD_GCM);
