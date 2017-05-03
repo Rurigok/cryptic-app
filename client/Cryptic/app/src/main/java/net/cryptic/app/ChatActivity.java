@@ -117,17 +117,6 @@ public class ChatActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-        /*mMessageView = (AutoCompleteTextView) findViewById(R.id.messageToSend);
-        mMessageView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if(id == R.id.sendMessage || id == EditorInfo.IME_NULL) {
-                    //sendMessage();
-                    return true;
-                }
-                return false;
-            }
-        });*/
     }
 
     /*private void sendMessage() {
