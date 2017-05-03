@@ -144,7 +144,7 @@ def logout(session):
     return JSONResponse(True)
 
 @uses_db
-def create_account(username):
+def create_account(session, username):
     """ Attempts to create the given user account.
 
     The user calling this method must have admin privileges to create a new
@@ -170,6 +170,8 @@ def create_account(username):
     gen_password = generate_password()
     gen_password = gen_password.encode("UTF-8")
     hashed_password = bcrypt.hashpw(gen_password, bcrypt.gensalt())
+
+    session["generated_password"] = gen_password
 
     # Personal key generation for message storage
     personal_key = generate_personal_key()
