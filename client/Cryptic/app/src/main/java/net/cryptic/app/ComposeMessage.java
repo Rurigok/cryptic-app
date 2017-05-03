@@ -9,13 +9,13 @@ import android.widget.TextView;
  */
 
 public class ComposeMessage extends AppCompatActivity {
-    TextView textView;
+    TextView contactText;
 
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.compose_message);
-        textView = (TextView) findViewById(R.id.textView);
-        textView.setText("To: " + getIntent().getStringExtra("CONTACT_NAME"));
+        contactText = (TextView) findViewById(R.id.contactText);
+        contactText.setText(getIntent().getStringExtra("CONTACT_NAME"));
     }
 
 }
