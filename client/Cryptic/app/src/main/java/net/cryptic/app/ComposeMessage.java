@@ -127,6 +127,7 @@ public class ComposeMessage extends AppCompatActivity {
             StoredMessage storedMessage = new StoredMessage(mMessageView.getText().toString(), timeout);
             storedMessage.sentOrReceived = "SENT";
             outputStream.write(jsonUtil.toJSon(storedMessage).getBytes());
+            outputStream.write("---separator---".getBytes());
         } catch(FileNotFoundException e){
             e.printStackTrace();
         } catch(JSONException e){
