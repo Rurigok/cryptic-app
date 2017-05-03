@@ -56,7 +56,9 @@ public class ScrollingActivity extends AppCompatActivity {
                 editor.apply();
                 Log.i("OUTPUT", "Cookie removed.");
 
-                startActivity(new Intent(ScrollingActivity.this, LoginActivity.class));
+                Intent intent = new Intent(ScrollingActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
             }
         });
 
@@ -125,7 +127,6 @@ public class ScrollingActivity extends AppCompatActivity {
             Log.i("Inform me", "NOW!");
             try {
                 out = openFileOutput(c.getFromUser() + ".txt", Context.MODE_PRIVATE);
-                //out.write(c.getFromUser().getBytes());
                 for(StoredMessage sm : c.getMessages()) {
                     out.write(jsonUtil.toJSon(sm).getBytes());
                     out.write("---separator---".getBytes());
