@@ -292,6 +292,7 @@ public class LoginActivity extends AppCompatActivity {
                     String public_key = Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT);
                     Log.i("PUBLIC_KEY", public_key);
                     private_key = Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT);
+                    Log.i("PUBLIC_KEY_LENGTH", public_key.length() + "");
                     form.put("public_key", public_key);
                 } catch (InvalidAlgorithmParameterException | NoSuchProviderException | NoSuchAlgorithmException | InvalidKeySpecException e) {
                     e.printStackTrace();
