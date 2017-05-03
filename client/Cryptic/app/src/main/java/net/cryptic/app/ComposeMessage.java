@@ -171,7 +171,7 @@ public class ComposeMessage extends AppCompatActivity {
             HashMap<String, String> form = new HashMap<>();
 
             form.put("username", settings.getString("username", null));
-            form.put("target", "TestUser");
+            form.put("target", mTarget);
 
             try{
                 url = new URL("http://andrew.sanetra.me/cryptic/login");
@@ -226,6 +226,9 @@ public class ComposeMessage extends AppCompatActivity {
             String GCM_NONCE = "";
 
             try {
+
+                // TODO: encrypt and store message on device
+
                 //Random generator for GCM nonce
                 SecureRandom random = new SecureRandom();
                 final byte[] nonce = new byte[GCM_NONCE_LENGTH];
