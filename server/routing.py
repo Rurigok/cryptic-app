@@ -86,6 +86,8 @@ def get_message_route(requester_user, target_user):
     response.target_ip = target_ip
     response.target_public_key = target_key
 
+    return response
+
 @uses_db
 def update_route():
     """ Stores an updated IP address for a client. """
