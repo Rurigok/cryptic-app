@@ -126,13 +126,15 @@ public class ScrollingActivity extends AppCompatActivity {
             stringList.add(c.getDisplay());
             Log.i("Inform me", "NOW!");
             try {
-                out = openFileOutput(c.getFromUser() + ".txt", Context.MODE_PRIVATE);
-                for(StoredMessage sm : c.getMessages()) {
-                    out.write(jsonUtil.toJSon(sm).getBytes());
-                    out.write("---separator---".getBytes());
+                if(!fileExists(c.getFromUser() + ".txt")) {
+                    out = openFileOutput(c.getFromUser() + ".txt", Context.MODE_PRIVATE);
+                    for (StoredMessage sm : c.getMessages()) {
+                        out.write(jsonUtil.toJSon(sm).getBytes());
+                        out.write("---separator---".getBytes());
+                    }
+                    out.flush();
+                    out.close();
                 }
-                out.flush();
-                out.close();
 
                 Log.i("Inform me", "YO!");
             } catch(FileNotFoundException e){
@@ -163,5 +165,10 @@ public class ScrollingActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    public boolean fileExists(String fname){
+        File file = getBaseContext().getFileStreamPath(fname);
+        return file.exists();
     }
 }
