@@ -87,6 +87,7 @@ public class ChatActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+
         //Create fake JSON message for now
         JSONObject jsonObj = new JSONObject();
         try {

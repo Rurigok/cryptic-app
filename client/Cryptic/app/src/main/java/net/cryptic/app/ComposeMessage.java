@@ -74,6 +74,7 @@ public class ComposeMessage extends AppCompatActivity {
     private EditText mEncryptView;
     private EditText mTimeoutView;
     private EditText mMessageView;
+    CheckBox deleteCheck;
     //private EditText mTargetView;
 
     private final byte[] AAD_GCM = "CRYPTIC_MESSAGE".getBytes();
@@ -91,6 +92,8 @@ public class ComposeMessage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.compose_message);
 
+        deleteCheck = (CheckBox) findViewById(R.id.deleteBox);
+
         contactText = (TextView) findViewById(R.id.contactText);
         contactText.setText(getIntent().getStringExtra("CONTACT_NAME"));
 
@@ -106,6 +109,7 @@ public class ComposeMessage extends AppCompatActivity {
             public void onClick(View v) {
                 storeSend();
                 Intent intent = new Intent(ComposeMessage.this, ChatActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 intent.putExtra("CONTACT_NAME", getIntent().getStringExtra("CONTACT_NAME"));
                 startActivity(intent);
                 //attemptSend();
@@ -117,7 +121,10 @@ public class ComposeMessage extends AppCompatActivity {
         try {
             FileOutputStream outputStream = openFileOutput(getIntent().getStringExtra("CONTACT_NAME") + ".txt", Context.MODE_APPEND);
             JsonUtil jsonUtil = new JsonUtil();
-            StoredMessage storedMessage = new StoredMessage(mMessageView.getText().toString(), Integer.parseInt(mTimeoutView.getText().toString()));
+            int timeout = 0;
+            if(deleteCheck.isChecked())
+                timeout = Integer.parseInt(mTimeoutView.getText().toString());
+            StoredMessage storedMessage = new StoredMessage(mMessageView.getText().toString(), timeout);
             storedMessage.sentOrReceived = "SENT";
             outputStream.write(jsonUtil.toJSon(storedMessage).getBytes());
         } catch(FileNotFoundException e){
