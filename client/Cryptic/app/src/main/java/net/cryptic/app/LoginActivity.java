@@ -376,8 +376,9 @@ public class LoginActivity extends AppCompatActivity {
                         Log.i("NONCE", settings.getString("decryption_nonce", null));
 
                         byte[] Encrypted_Private_Key = c.doFinal(privkey);
-                        String Secure_Key = new String(Encrypted_Private_Key);
+                        String Secure_Key = Base64.encodeToString(Encrypted_Private_Key, Base64.DEFAULT);
                         editor.putString("private_key", Secure_Key);
+                        Log.i("PRIVATE_KEY_SET", Secure_Key);
                     }
 
                     editor.apply();

@@ -246,6 +246,7 @@ public class ComposeMessage extends AppCompatActivity {
                 e.printStackTrace();
             }
 
+            Log.i("PRIVATE_KEY_GET", settings.getString("private_key", null));
             byte[] encrypted_private = Base64.decode(settings.getString("private_key", null), Base64.DEFAULT);
             byte[] public_bytes = Base64.decode(public_key, Base64.DEFAULT);
 
@@ -320,7 +321,7 @@ public class ComposeMessage extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            int port = 5677;
+            int port = 5678;
 
             try {
                 ServerSocket socket = new ServerSocket(port);

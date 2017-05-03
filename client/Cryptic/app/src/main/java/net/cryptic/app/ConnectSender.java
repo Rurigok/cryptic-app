@@ -82,7 +82,7 @@ public class ConnectSender extends BroadcastReceiver {
 
             SecretKey sharedKey = KA.generateSecret("ECDH");
 
-            Socket socket = new Socket(ip, 5677);
+            Socket socket = new Socket(ip, 5678);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String message = in.readLine();
 
