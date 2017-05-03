@@ -1,5 +1,6 @@
 package net.cryptic.app;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -20,6 +21,8 @@ import org.json.JSONObject;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -100,8 +103,30 @@ public class ComposeMessage extends AppCompatActivity {
 
         send.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) { attemptSend(); }
+            public void onClick(View v) {
+                storeSend();
+                Intent intent = new Intent(ComposeMessage.this, ChatActivity.class);
+                intent.putExtra("CONTACT_NAME", getIntent().getStringExtra("CONTACT_NAME"));
+                startActivity(intent);
+                //attemptSend();
+            }
         });
+    }
+
+    public void storeSend(){
+        try {
+            FileOutputStream outputStream = openFileOutput(getIntent().getStringExtra("CONTACT_NAME") + ".txt", Context.MODE_APPEND);
+            JsonUtil jsonUtil = new JsonUtil();
+            StoredMessage storedMessage = new StoredMessage(mMessageView.getText().toString(), Integer.parseInt(mTimeoutView.getText().toString()));
+            storedMessage.sentOrReceived = "SENT";
+            outputStream.write(jsonUtil.toJSon(storedMessage).getBytes());
+        } catch(FileNotFoundException e){
+            e.printStackTrace();
+        } catch(JSONException e){
+            e.printStackTrace();
+        } catch(IOException e){
+            e.printStackTrace();
+        }
     }
 
     public void attemptSend() {
