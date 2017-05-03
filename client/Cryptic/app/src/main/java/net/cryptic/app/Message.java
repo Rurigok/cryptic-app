@@ -3,7 +3,6 @@ package net.cryptic.app;
 import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.util.Calendar
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -72,15 +71,13 @@ public class JsonUtil {
                 jsonObj.put("firstRead", tmp.firstRead);
                 jsonObj.put("flags", tmp.flags);
             }
-            if(message.type.equals("SENT")){
+            if(message.type.equals("SENT")) {
                 SentMessage tmp = (SentMessage) message;
                 jsonObj.put("message", tmp.message); // Set the first name/pair
                 jsonObj.put("nonceString", tmp.nonceString);
                 jsonObj.put("deletionTimer", tmp.deletionTimer);
                 jsonObj.put("dateSent", tmp.dateSent);
                 jsonObj.put("flags", tmp.flags);
-            }
-
             }
             else{
                 Log.d("MESSAGE ERROR: ", "INCORRECT MESSAGE TYPE, MUST BE SENT/STORED");
@@ -94,3 +91,4 @@ public class JsonUtil {
             ex.printStackTrace();
         }
     }
+}

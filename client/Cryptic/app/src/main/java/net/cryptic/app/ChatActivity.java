@@ -26,6 +26,10 @@ import java.util.List;
 
 public class ChatActivity extends AppCompatActivity {
 
+    public static String storedOrReceived;
+    public static int deletionTimer;
+    public static String flags;
+    public static String nonceString;
     private List<JSONObject> messages;
     private FileOutputStream outputStream;
     private ListView mListView;
