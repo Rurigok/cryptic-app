@@ -12,6 +12,7 @@ import java.util.Date;
 
 
 abstract class Message {
+
     String type;
     String message;
     int deletionTimer;
@@ -29,7 +30,7 @@ class StoredMessage extends Message{
         this.type = "STORED";
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
         this.message = string;
-        this.sentOrReceived = ChatActivity.storedOrReceived;
+        this.sentOrReceived = "RECEIVED";
         this.deletionTimer = ChatActivity.deletionTimer;
         this.dateStored = sdf.format(new Date());
         this.firstRead = sdf.format(new Date());
@@ -40,7 +41,6 @@ class StoredMessage extends Message{
 
 
 class SentMessage extends Message{
-
     String nonceString;
     String dateSent;
 
@@ -60,9 +60,11 @@ class JsonUtil {
 
     public static String toJSon(Message message) throws JSONException {
         JSONObject jsonObj = new JSONObject();
+        Log.i("TYPE", message.type);
+        message.type.trim();
         try {
             // Here we convert Java Object to JSON
-            if(message.type.equals("STORED")) {
+            //if("STORED".equals(message.type)) {
                 StoredMessage tmp = (StoredMessage) message;
                 jsonObj.put("message", tmp.message); // Set the first name/pair
                 jsonObj.put("sentOrReceived", tmp.sentOrReceived);
@@ -70,8 +72,8 @@ class JsonUtil {
                 jsonObj.put("dateStored", tmp.dateStored);
                 jsonObj.put("firstRead", tmp.firstRead);
                 jsonObj.put("flags", tmp.flags);
-            }
-            if(message.type.equals("SENT")) {
+            //}
+            /*if("SENT".equals(message.type)) {
                 SentMessage tmp = (SentMessage) message;
                 jsonObj.put("message", tmp.message); // Set the first name/pair
                 jsonObj.put("nonceString", tmp.nonceString);
@@ -80,8 +82,8 @@ class JsonUtil {
                 jsonObj.put("flags", tmp.flags);
             }
             else{
-                Log.d("MESSAGE ERROR: ", "INCORRECT MESSAGE TYPE, MUST BE SENT/STORED");
-            }
+                Log.d("MESSAGE ERROR", "INCORRECT MESSAGE TYPE, MUST BE SENT/STORED");
+            }*/
 
 
             return jsonObj.toString();

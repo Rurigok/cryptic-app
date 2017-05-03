@@ -8,9 +8,12 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -22,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class ChatActivity extends AppCompatActivity {
@@ -30,11 +34,14 @@ public class ChatActivity extends AppCompatActivity {
     public static int deletionTimer;
     public static String flags;
     public static String nonceString;
+    public static JsonUtil jsonUtil = new JsonUtil();
     private List<JSONObject> messages;
     private FileOutputStream outputStream;
     private ListView mListView;
-    private AutoCompleteTextView mMessageView;
+    private Button composeMessage;
+    //private AutoCompleteTextView mMessageView;
     List<String> stringList = new ArrayList<>();
+    private ChatAdapter adapter;
 
 
     @Override
@@ -42,14 +49,14 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        ArrayAdapter adapter = new ArrayAdapter<>(this, R.layout.listview, stringList);
         //ArrayAdapter<String> msgAdapter = new ArrayAdapter<String>(this, R.layout.conversation_list, R.id.message, msgList);
+        adapter = new ChatAdapter(this, new ArrayList<StoredMessage>());
 
         Intent intent = getIntent();
         String contact = intent.getStringExtra("CONTACT_NAME");
         Log.i("OUTPUT", "Contact Name: " + contact);
         getSupportActionBar().setTitle(contact);
-
+        StringBuilder fileContent = new StringBuilder();
 
         FileInputStream inputStream;
 
@@ -58,7 +65,6 @@ public class ChatActivity extends AppCompatActivity {
             inputStream = openFileInput(contact + ".txt");
             //inputStream = new FileInputStream(Environment.getExternalStorageDirectory() + "/" + contact + ".txt");
             this.outputStream = openFileOutput(contact + ".txt", Context.MODE_PRIVATE);
-            StringBuilder fileContent = new StringBuilder();
             Log.i("FILE READ", "FILE DOES EXIST");
             byte[] buffer = new byte[1024];
             int n;
@@ -80,30 +86,6 @@ public class ChatActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-
-        /*
-        try {
-            FileInputStream in = new FileInputStream(Environment.getExternalStorageDirectory() + "/" + contact + ".txt");
-            StringBuilder fileContent = new StringBuilder();
-            byte[] buffer = new byte[1024];
-            int n;
-            while ((n = in.read(buffer)) != -1)
-            {
-                fileContent.append(new String(buffer, 0, n));
-            }
-            in.close();
-            Log.i("Inform me", fileContent.toString());
-        } catch(FileNotFoundException e){
-            //System.exit(-1);
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        */
-
-        //msgList = new ListView(this);
-
         //Create fake JSON message for now
         JSONObject jsonObj = new JSONObject();
         try {
@@ -117,37 +99,56 @@ public class ChatActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-
-
         mListView = (ListView) findViewById(R.id.messageList);
         mListView.setAdapter(adapter);
+        mListView.setDivider(null);
+        mListView.setDividerHeight(0);
 
-        mMessageView = (AutoCompleteTextView) findViewById(R.id.messageToSend);
+        StoredMessage mes = new StoredMessage("MINE!");
+        StoredMessage mes2 = new StoredMessage("YOURS!");
+        mes.sentOrReceived = "SENT";
+        mes2.sentOrReceived = "RECEIVED";
+        adapter.add(mes);
+        adapter.add(mes2);
+
+        composeMessage = (Button) findViewById(R.id.composeMessage);
+        composeMessage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ChatActivity.this, ComposeMessage.class);
+                //intent.putExtra("CONTACT_NAME", contact);
+                startActivity(intent);
+            }
+        });
+        /*mMessageView = (AutoCompleteTextView) findViewById(R.id.messageToSend);
         mMessageView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if(id == R.id.sendMessage || id == EditorInfo.IME_NULL) {
-                    sendMessage();
+                    //sendMessage();
                     return true;
                 }
                 return false;
             }
-        });
+        });*/
     }
 
-    private void sendMessage() {
+    /*private void sendMessage() {
 
         Editable message = mMessageView.getText();
-
+        StoredMessage msg = new StoredMessage(message.toString());
+        msg.sentOrReceived = "SENT";
+        msg.type = "STORED";
         Log.i("Output", "SENDING MESSAGE:" + message);
         if (mMessageView.length() > 0) {
             mMessageView.getText().clear();
         }
-        String str = message.toString();
+        //String str = message.toString();
         try {
-            outputStream.write(str.getBytes());
+            outputStream.write(jsonUtil.toJSon(msg).getBytes());
+            Log.i("STORED IN", getFilesDir().getAbsolutePath().toString());
         } catch(Exception e){
             e.printStackTrace();
         }
-    }
+    }*/
 }
