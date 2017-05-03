@@ -45,7 +45,7 @@ public class ServerListener extends IntentService {
         int port = 5677;
         String personal_key = intent.getStringExtra("personal_key");
         String private_key = settings.getString("private_key", null);
-        byte[] nonce = settings.getString("decryption_nonce", null).getBytes();
+        byte[] nonce = Base64.decode(settings.getString("decryption_nonce", null), Base64.DEFAULT);
 
         try {
             ServerSocket socket = new ServerSocket(port);

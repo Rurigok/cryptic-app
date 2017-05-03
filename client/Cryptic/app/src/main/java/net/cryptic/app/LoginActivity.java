@@ -263,7 +263,7 @@ public class LoginActivity extends AppCompatActivity {
 
             String private_key = settings.getString("private_key", null);
 
-            if (private_key == null) {
+            if (/*private_key == null*/ true) {
                 newkey = true;
 
                 //Initialize curve to a NIST standard
@@ -292,6 +292,7 @@ public class LoginActivity extends AppCompatActivity {
                     String public_key = Base64.encodeToString(pubKey.getEncoded(), Base64.DEFAULT);
                     Log.i("PUBLIC_KEY", public_key);
                     private_key = Base64.encodeToString(privKey.getEncoded(), Base64.DEFAULT);
+                    Log.i("PUBLIC_KEY_LENGTH", public_key.length() + "");
                     form.put("public_key", public_key);
                 } catch (InvalidAlgorithmParameterException | NoSuchProviderException | NoSuchAlgorithmException | InvalidKeySpecException e) {
                     e.printStackTrace();
@@ -344,6 +345,7 @@ public class LoginActivity extends AppCompatActivity {
                     personal_key = null;
                     try {
                         personal_key = jsonResponse.getString("personal_key");
+                        Log.i("PERSONAL_KEY_LOGIN", personal_key);
                     }
                     catch (JSONException e) {
                         e.printStackTrace();
@@ -369,16 +371,18 @@ public class LoginActivity extends AppCompatActivity {
                         random.nextBytes(nonce);
                         GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, nonce);
                         c.init(Cipher.ENCRYPT_MODE, Encryption_Spec, spec);
-                        c.update(AAD_GCM);
+                        //c.update(AAD_GCM);
+                        Log.i("ENCRYPTION_CIPHER_HASH", c.hashCode()+"");
 
-                        String GCM_NONCE = new String(nonce);
+                        String GCM_NONCE = Base64.encodeToString(nonce, Base64.DEFAULT);
                         editor.putString("decryption_nonce", GCM_NONCE); //horribly insecure and defeats the point
-                        Log.i("NONCE", settings.getString("decryption_nonce", null));
+                        Log.i("NONCE SET", GCM_NONCE);
 
                         byte[] Encrypted_Private_Key = c.doFinal(privkey);
                         String Secure_Key = Base64.encodeToString(Encrypted_Private_Key, Base64.DEFAULT);
                         editor.putString("private_key", Secure_Key);
                         Log.i("PRIVATE_KEY_SET", Secure_Key);
+                        Log.i("AAD_LOGIN", new String(AAD_GCM));
                     }
 
                     editor.apply();

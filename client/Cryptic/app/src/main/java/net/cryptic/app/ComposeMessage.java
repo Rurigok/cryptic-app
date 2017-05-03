@@ -29,7 +29,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -259,6 +258,7 @@ public class ComposeMessage extends AppCompatActivity {
             byte[] public_bytes = Base64.decode(public_key, Base64.DEFAULT);
 
             String pKey = getIntent().getStringExtra("personal_key");
+            Log.i("PERSONAL_KEY_VERIFY", pKey);
             byte[] personal_key = Base64.decode(pKey, Base64.DEFAULT);
             SecretKeySpec keyspec = new SecretKeySpec(personal_key, "AES");
 
@@ -277,16 +277,18 @@ public class ComposeMessage extends AppCompatActivity {
 
                 //Create encryption cipher
                 Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
-                byte[] decryption_nonce = settings.getString("decryption_nonce", null).getBytes();
-                Log.i("NONCE", settings.getString("decryption_nonce", null));
+                byte[] decryption_nonce = Base64.decode(settings.getString("decryption_nonce", null), Base64.DEFAULT);
+                Log.i("NONCE GET", settings.getString("decryption_nonce", null));
                 GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, decryption_nonce);
                 c.init(Cipher.DECRYPT_MODE, keyspec, spec);
-                c.update(AAD_GCM);
+                //c.update(AAD_GCM);
+                Log.i("DECRYPTION_CIPHER_HASH", c.hashCode()+"");
+                Log.i("AAD_VERIFY", new String(AAD_GCM));
                 byte[] decrypted_private = c.doFinal(encrypted_private);
 
                 KeyFactory kf = KeyFactory.getInstance("ECDH", "SC");
 
-                X509EncodedKeySpec x509ks = new X509EncodedKeySpec(Base64.decode(public_bytes, Base64.DEFAULT));
+                X509EncodedKeySpec x509ks = new X509EncodedKeySpec(public_bytes);
                 PublicKey pubKey = kf.generatePublic(x509ks);
                 PKCS8EncodedKeySpec p8ks = new PKCS8EncodedKeySpec(decrypted_private);
                 PrivateKey privKey = kf.generatePrivate(p8ks);
@@ -334,6 +336,10 @@ public class ComposeMessage extends AppCompatActivity {
             try {
                 ServerSocket socket = new ServerSocket(port);
                 Socket sock = socket.accept();
+
+                // TODO: Switch to a real timeout time
+
+                sock.setSoTimeout(1);
 
                 // Quit if fraudulent IP tries to connect
                     /*if (!sock.getInetAddress().getHostAddress().equals(device_ip)) {

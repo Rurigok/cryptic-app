@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS cryptic.users (
   username VARCHAR(255) NOT NULL,
   password VARCHAR(255) NOT NULL,
   personal_key VARCHAR(32),         -- Personal Key = 256-bit
-  public_key VARCHAR(108),          -- Public Key   = 864-bit
+  public_key VARCHAR(110),          -- Public Key   = 880-bit
   is_admin TINYINT DEFAULT 0
 ) ENGINE = InnoDB;
 
