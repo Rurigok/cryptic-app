@@ -79,7 +79,11 @@ def get_message_route(requester_user, target_user):
     message = {}
     message["sender_ip"] = requester_ip
     message["sender_public_key"] = requester_key
-    push_message(target_ip, json.dumps(message))
+
+    response = push_message(target_ip, json.dumps(message))
+
+    if not response.success:
+        return response
 
     # Return target ip and key to requester (via original http response)
     response = JSONResponse(True)
@@ -106,16 +110,21 @@ def push_message(ip_address, message):
 
     print("connecting to socket: {}:{}".format(host, port))
 
-    # connect to client
-    s.connect((host, port))
+    try:
+        # connect to client
+        s.connect((host, port))
 
-    # prepare message
-    message = message.encode("utf-8")
+        # prepare message
+        message = message.encode("utf-8")
 
-    sent = s.send(message)
+        sent = s.send(message)
 
-    response_code = s.recv(1)
+        response_code = s.recv(1)
 
-    s.close()
+        s.close()
+    except Error as e:
+        return JSONResponse(False, "Socket error: {}".format(e))
 
     print("sent {} bytes. response: {}".format(sent, response_code))
+
+    return JSONResponse(True)
