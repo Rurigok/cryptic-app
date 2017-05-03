@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:weightSum="1">
@@ -10,20 +11,17 @@
         android:layout_height="317dp"
         android:layout_weight="1" />
 
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <AutoCompleteTextView
-            android:id="@+id/messageToSend"
-            style="@style/Widget.AppCompat.AutoCompleteTextView"
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:imeActionId="@+id/sendMessage"
-            android:imeActionLabel="@string/action_send_message"
-            android:imeOptions="actionUnspecified"
-            android:inputType="textLongMessage"/>
-
-    </android.support.design.widget.TextInputLayout>
+    <Button
+        android:id="@+id/composeMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/colorPrimary"
+        android:elevation="0dp"
+        android:gravity="right"
+        android:text="Compose Message"
+        android:textAlignment="center"
+        android:textColor="@android:color/background_light"
+        android:textSize="18sp"
+        tools:text="Compose Message" />
 
 </LinearLayout>

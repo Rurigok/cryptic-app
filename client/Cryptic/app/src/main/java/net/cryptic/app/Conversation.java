@@ -11,7 +11,6 @@ public class Conversation {
     private String fromUser;
     private Date date;
     private String display;
-    private List<JSONObject> messages = new ArrayList<JSONObject>();
 
     public Conversation(String fromUser, Date date)
     {
@@ -30,19 +29,6 @@ public class Conversation {
             display += "over a day ago";
         else
             display += "long long ago...";
-        JSONObject js = new JSONObject();
-        try {
-            js.put("From", "Andrew");
-            js.put("Message", "LoL is bad.");
-        } catch (JSONException e){
-            e.printStackTrace();
-        }
-        messages.add(js);
-    }
-
-    public boolean storeMessages(){
-        //DOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO IIIIIIIIIIITTTTTTTTTTTTTTTTTTTTTTTTTTTT
-        return true;
     }
 
     public String getDisplay() {
