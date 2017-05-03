@@ -57,7 +57,7 @@ public class ConnectSender extends BroadcastReceiver {
         String key = intent.getStringExtra("SENDER_KEY");
         String personal_key = intent.getStringExtra("personal_key");
 
-        byte[] perskey = personal_key.getBytes();
+        byte[] perskey = Base64.decode(personal_key, Base64.DEFAULT);
         SecretKeySpec keyspec = new SecretKeySpec(perskey, "AES");
 
         byte[] nonce = intent.getByteArrayExtra("nonce");

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Base64;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -82,7 +83,7 @@ public class ServerListener extends IntentService {
             localIntent.putExtra("SENDER_IP", sender_ip);
             localIntent.putExtra("SENDER_KEY", sender_key);
             localIntent.putExtra("personal_key", personal_key);
-            localIntent.putExtra("private_key", private_key.getBytes());
+            localIntent.putExtra("private_key", Base64.decode(private_key, Base64.DEFAULT));
             localIntent.putExtra("nonce", nonce);
             LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
 
